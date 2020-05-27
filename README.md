@@ -33,8 +33,9 @@ cd jailtoolkit/bin
 - Have a plan for app password
 - Optionally run installconsul
 
-## Script: installconsul [jail name]
+## Service: Consul (node) [jail name]
 - Installs Consul and dependent packages
+- Script path: `services/consul-node/bin`
 - Deploys basic Consul config
 
 ### TODO
