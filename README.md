@@ -25,8 +25,8 @@ cd jailtoolkit/bin
 ## Scripts
 ### createjail [jail name]
 - Creates jail on DHCP
-- Installs basic packages
-- Creates app account
+- Installs basic packages eg. Git
+- Creates app account with Zsh shell
 - Config at `conf/createjail.conf`
 
 ### TODO
