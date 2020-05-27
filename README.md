@@ -22,8 +22,7 @@ cd jailtoolkit/bin
 ./install.sh
 ~~~
 
-## Scripts
-### createjail [jail name]
+## Script: createjail [jail name]
 - Creates jail on DHCP
 - Installs basic packages eg. Git
 - Creates app account with Zsh shell
@@ -34,7 +33,7 @@ cd jailtoolkit/bin
 - Have a plan for app password
 - Optionally run installconsul
 
-### installconsul [jail name]
+## Script: installconsul [jail name]
 - Installs Consul and dependent packages
 - Deploys basic Consul config
 
