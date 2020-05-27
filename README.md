@@ -29,7 +29,7 @@ cd jailtoolkit/bin
 - Creates app account
 
 ### TODO
-- Make package list configurable
+- ~~Make package list configurable~~
 - Have a plan for app password
 - Optionally run installconsul
 
