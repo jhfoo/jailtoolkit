@@ -9,5 +9,15 @@ A set of scripts and configuration to assist FreeBSD administrators to autommate
 - [Iocage](https://github.com/iocage/iocage)
 - [Consul](https://www.consul.io/)
 
-## Usage 
+## Usage
 To be used on a non-root account with sudo capabilities (wheel group?)
+
+## Assumptions
+- Zsh default shell on account
+
+## Install
+~~~sh
+git clone https://github.com/jhfoo/jailtoolkit.git
+cd jailtoolkit/bin
+./install.sh
+~~~
