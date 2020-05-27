@@ -27,6 +27,7 @@ cd jailtoolkit/bin
 - Creates jail on DHCP
 - Installs basic packages
 - Creates app account
+- Config at `conf/createjail.conf`
 
 ### TODO
 - ~~Make package list configurable~~
