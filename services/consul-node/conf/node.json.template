@@ -1,0 +1,11 @@
+{
+  "datacenter": "yishun",
+  "server": false,
+  "node_name": "${HOSTNAME}",
+  "log_level": "INFO",
+  "log_file": "/var/log/consul/",
+  "log_rotate_max_files": 3,
+  "log_rotate_bytes": 524288,
+  "log_rotate_duration": "24h",
+  "retry_join": ["192.168.1.60"]
+}
