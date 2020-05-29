@@ -1,3 +1,4 @@
+INSTALL_BASEDIR=~/jailtoolkit
 INSTALL_DIR=~/jailtoolkit/services/consul-node
 CONSUL_CONF_DIR=/usr/local/etc/consul.d
 export HOSTNAME=`hostname -s`
@@ -31,6 +32,11 @@ cp $TARGET $CONSUL_CONF_DIR
 mkdir -p /var/log/consul
 chown consul:consul /var/log/consul
 
+# install custom config if specified
+if [ -n "$2" ]
+then
+  cp "${INSTALL_BASEDIR}/jail/$2/*" $CONSUL_CONF_DIR
+fi
 
 # Start it up!
 sysrc consul_enable="YES"
