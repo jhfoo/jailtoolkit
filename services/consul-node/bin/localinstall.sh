@@ -5,6 +5,9 @@ export HOSTNAME=`hostname -s`
 # If consul is already installed and running
 service consul stop
 
+# Remove existing config
+rm $CONSUL_CONF_DIR/*
+
 echo *** Installing consul pkg ***
 pkg install -y consul perl5
 
@@ -22,7 +25,7 @@ perl -pe 's;(\\*)(\$([a-zA-Z_][a-zA-Z_0-9]*)|\$\{([a-zA-Z_][a-zA-Z_0-9]*)\})?;su
 rm $TARGET
 
 TARGET="${INSTALL_DIR}/conf/*"
-cp $TARGET /usr/local/etc/consul.d/
+cp $TARGET $CONSUL_CONF_DIR
 
 # Enable Consul to log in /var/log/consul
 mkdir -p /var/log/consul
