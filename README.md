@@ -29,15 +29,11 @@ cd jailtoolkit/bin
 - Config at `conf/createjail.conf`
 
 ### TODO
-- ~~Make package list configurable~~
 - Have a plan for app password
 - Optionally run installconsul
 
-## Service: Consul (node) [jail name]
-- Installs Consul and dependent packages
-- Script path: `services/consul-node/bin`
-- Deploys basic Consul config
+## Service: installsvc [ServiceId] [JailId] [JailTemplateId]
+- Executes services/[Service]/bin/install.sh
 
 ### TODO
-- Make basic config more configurable
-  - Extract configurable parameters into separate file
+- Write the script!
