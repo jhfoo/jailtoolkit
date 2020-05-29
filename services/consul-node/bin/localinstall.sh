@@ -1,4 +1,4 @@
-INSTALL_DIR=/jailtoolkit/services/consul-node
+INSTALL_DIR=~/jailtoolkit/services/consul-node
 CONSUL_CONF_DIR=/usr/local/etc/consul.d
 export HOSTNAME=`hostname -s`
 
