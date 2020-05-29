@@ -22,7 +22,7 @@ cd jailtoolkit/bin
 ./install.sh
 ~~~
 
-## Script: createjail [jail name]
+## bin/createjail [jail name]
 - Creates jail on DHCP
 - Installs basic packages eg. Git
 - Creates app account with Zsh shell
@@ -32,8 +32,11 @@ cd jailtoolkit/bin
 - Have a plan for app password
 - Optionally run installconsul
 
-## Service: installsvc [ServiceId] [JailId] [JailTemplateId]
+## bin/installsvc [ServiceId] [JailId] [JailTemplateId]
 - Executes services/[Service]/bin/install.sh
 
 ### TODO
 - Write the script!
+
+## services/consul-node/bin/install [JailId] [JailTemplateId]
+- Executes services/consul-node/bin/localinstall in JailId
