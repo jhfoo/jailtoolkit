@@ -25,7 +25,7 @@ DEST="${CONSUL_CONF_DIR}/node.json"
 perl -pe 's;(\\*)(\$([a-zA-Z_][a-zA-Z_0-9]*)|\$\{([a-zA-Z_][a-zA-Z_0-9]*)\})?;substr($1,0,int(length($1)/2)).($2&&length($1)%2?$2:$ENV{$3||$4});eg' $TARGET > $DEST
 rm $TARGET
 
-TARGET="${INSTALL_DIR}/conf/*"
+TARGET="${INSTALL_DIR}/conf/"*
 cp $TARGET $CONSUL_CONF_DIR
 
 # Enable Consul to log in /var/log/consul
@@ -35,7 +35,7 @@ chown consul:consul /var/log/consul
 # install custom config if specified
 if [ -n "$1" ]
 then
-  cp "${INSTALL_BASEDIR}/jails/$1/conf/consul-*" "${CONSUL_CONF_DIR}/"
+  cp "${INSTALL_BASEDIR}/jails/$1/conf/consul-"* "${CONSUL_CONF_DIR}/"
 fi
 
 # Start it up!
