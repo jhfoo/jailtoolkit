@@ -35,7 +35,7 @@ chown consul:consul /var/log/consul
 # install custom config if specified
 if [ -n "$1" ]
 then
-  cp "${INSTALL_BASEDIR}/jail/$2/consul-*" $CONSUL_CONF_DIR
+  cp "${INSTALL_BASEDIR}/jails/$1/consul-*" $CONSUL_CONF_DIR
 fi
 
 # Start it up!
