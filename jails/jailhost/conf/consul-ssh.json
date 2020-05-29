@@ -1,0 +1,9 @@
+{
+  "service": {
+    "id": "jailhost",
+    "name": "jailhost",
+    "tags": ["iocage"],
+    "port": 22
+  }
+}
+
