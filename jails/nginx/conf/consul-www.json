@@ -1,0 +1,12 @@
+{
+  "service": {
+    "id": "www",
+    "name": "www",
+    "tags": ["nginx"],
+    "meta": {
+      "meta": "wordpress"
+    },
+    "port": 80
+  }
+}
+
