@@ -1,0 +1,9 @@
+{
+  "service": {
+    "id": "tinc",
+    "name": "tinc",
+    "tags": [],
+    "port": 655
+  }
+}
+
