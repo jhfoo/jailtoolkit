@@ -32,11 +32,8 @@ cd jailtoolkit/bin
 - Have a plan for app password
 - Optionally run installconsul
 
-## bin/installsvc [ServiceId] [JailId] [JailTemplateId]
-- Executes services/[Service]/bin/install.sh
+## bin/installsvc [ServiceId] [arguments]
+- Executes services/[ServiceId]/bin/install.sh [arguments]
 
-### TODO
-- Write the script!
-
-## services/consul-node/bin/install [JailId] [JailTemplateId]
-- Executes services/consul-node/bin/localinstall in JailId
+## services
+- consul-node [JailId] [JailTemplateId]: Executes services/consul-node/bin/localinstall in [JailId]
