@@ -3,14 +3,11 @@
     "id": "mosquitto",
     "name": "mosquitto",
     "tags": ["mqtt"],
-    "tagged_addresses": {
-      "websocket": {
-        "port": 9001
-      },
-      "socket": {
-        "port": 8883
-      }
-    }
+     "meta": {
+       "websocket-port": "9001",
+       "mqtt-unencrypted": "1883"
+    },
+    "port": 8883
   }
 }
 
