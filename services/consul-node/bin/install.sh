@@ -1,6 +1,7 @@
-if [ -z "$1" ]
+if [ $# -eq 0 ]
 then
-  echo ERROR: Missing argument for jail template
+  echo "[consul-node] ERROR: Missing argument for jail temp.late"
+  echo "[consul-node] Usage: install.sh <JailId> <arguments>"
 else
   siocage="sudo iocage"
   $siocage exec $1 "rm -rf ~/jailtoolkit"
