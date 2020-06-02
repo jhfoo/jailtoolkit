@@ -37,4 +37,4 @@ cd jailtoolkit/bin
 - Executes services/[ServiceId]/bin/install.sh [arguments]
 
 ## Services
-- consul-node [JailId] [JailTemplateId]: Executes services/consul-node/bin/localinstall in [JailId]
+- consul-node [JailId] [JailTemplateId]
