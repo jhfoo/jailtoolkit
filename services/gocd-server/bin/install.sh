@@ -1,6 +1,6 @@
 pkg install openjdk13
 
-BIN_SRC="https://download.gocd.org/binaries/20.4.0-11749/generic/go-server-20.4.zip"
+BIN_SRC="https://download.gocd.org/binaries/20.4.0-11749/generic/go-server-20.4.0-11749.zip"
 APP_BASEDIR=~/jailtoolkit/services/gocd-server
 
 mkdir -p ${APP_BASEDIR}/tmp
