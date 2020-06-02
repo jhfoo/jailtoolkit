@@ -22,18 +22,19 @@ cd jailtoolkit/bin
 ./install.sh
 ~~~
 
-## bin/createjail [jail name]
+## Key scripts
+### bin/createjail [jail name]
 - Creates jail on DHCP
 - Installs basic packages eg. Git
 - Creates app account with Zsh shell
 - Config at `conf/createjail.conf`
 
-### TODO
+##### TODO
 - Have a plan for app password
 - Optionally run installconsul
 
-## bin/installsvc [ServiceId] [arguments]
+### bin/installsvc [ServiceId] [arguments]
 - Executes services/[ServiceId]/bin/install.sh [arguments]
 
-## services
+## Services
 - consul-node [JailId] [JailTemplateId]: Executes services/consul-node/bin/localinstall in [JailId]
