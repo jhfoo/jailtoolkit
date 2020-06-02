@@ -1,0 +1,16 @@
+{
+  "service": {
+    "id": "mosquitto",
+    "name": "mosquitto",
+    "tags": ["mqtt"],
+    "tagged_addresses": {
+      "websocket": {
+        "port": 9001
+      },
+      "socket": {
+        "port": 8883
+      }
+    }
+  }
+}
+
