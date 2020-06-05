@@ -1,0 +1,9 @@
+{
+  "service": {
+    "id": "prometheus",
+    "name": "prometheus",
+    "tags": [],
+    "port": 9090
+  }
+}
+
