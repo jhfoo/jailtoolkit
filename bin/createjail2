@@ -1,0 +1,24 @@
+
+BASEDIR=$("$(dirname $0)/abspath" "$0")
+echo "${BASEDIR}"
+
+NOCONSUL=0
+JAIL_NAME=""
+JAIL_SERVICE=""
+IF_BRIDGE=""
+IF_HOST=""
+
+# load configurable params
+. $BASEDIR/conf/createjail.conf
+
+# load functions
+. $BASEDIR/bin/lib/createjail.lib
+
+parseOptions $@
+validateArgs
+createJail
+
+if [ $NOCONSUL -eq 0 ]
+then
+    echo /// Coming soon: auto-Consul install ///
+fi
