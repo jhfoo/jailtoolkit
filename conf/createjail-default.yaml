@@ -9,10 +9,9 @@ pkg:
   - zsh
   - sudo
 cli:
-  - echo plschangeme | pw useradd app -h 0 -m -s /usr/local/bin/zsh
   - touch /home/app/.zshrc
 user:
   id: app
   pwd: plschangeme
   name: App Account
-  shell: zsh
+  shell: /usr/local/bin/zsh

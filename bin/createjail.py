@@ -58,13 +58,31 @@ def execTemplate(doc):
         print ('Mock exec: {}'.format(cmd))
         print ('Exit code: {}'.format(str(execNWait(cmd))))
 
+    # create user account
+    cmd = 'echo {} | pw useradd {} -h 0 -m -s {}'.format(doc['user']['pwd'], doc['user']['id'], doc['user']['shell'])
+    print ('Create user exit code: {}'.format(str(execNWait('sudo iocage exec {} "{}"'.format(JailName, cmd)))))
+
     # exec raw cli
     for cmd in doc['cli']:
+        if cmd.find('|') > -1:
+            cmd = '"' + cmd + '"'
+
         cmd = 'sudo iocage exec {} {}'.format(JailName, cmd)
         print ('Mock exec: {}'.format(cmd))
         print ('Exit code: {}'.format(str(execNWait(cmd))))
 
+def execNWaitShell(cmd):
+    child = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    out = child.communicate()[0].decode('utf-8').strip()
+    print (out)
+    return child.poll()
+
 def execNWait(cmd):
+    if cmd.find('|') > -1:
+        # exec in shell mode
+        return execNWaitShell(cmd)
+
+    # shell = false
     cmd = cmd.split()
     child = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
@@ -95,7 +113,7 @@ doc = loadTemplate()
 print (doc)
 execTemplate(doc)
 
-print ('Exit code: {}'.format(str(execNWait('sudo iocage destroy -f {}'.format(JailName)))))
+# print ('Exit code: {}'.format(str(execNWait('sudo iocage destroy -f {}'.format(JailName)))))
 
 
 
