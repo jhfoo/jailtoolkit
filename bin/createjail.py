@@ -110,7 +110,7 @@ def execNWait(cmd):
 validateCliArguments()
 parseOptions()
 doc = loadTemplate()
-print (doc)
+# print (doc)
 execTemplate(doc)
 
 # print ('Exit code: {}'.format(str(execNWait('sudo iocage destroy -f {}'.format(JailName)))))

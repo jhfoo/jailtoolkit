@@ -8,8 +8,11 @@ iocage:
 pkg:
   - zsh
   - sudo
+  - curl
 cli:
   - touch /home/app/.zshrc
+  - mkdir -p /home/app/.ssh/authorized_keys
+  - chown app:app /home/app/.ssh/authorized_keys
 user:
   id: app
   pwd: plschangeme
