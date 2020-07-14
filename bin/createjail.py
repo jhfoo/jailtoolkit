@@ -58,13 +58,24 @@ def execTemplate(doc):
         print ('Mock exec: {}'.format(cmd))
         print ('Exit code: {}'.format(str(execNWait(cmd))))
 
+    # start simple services
+    for daemon in doc['service']:
+        cmd = 'sudo iocage exec {} sysrc {}_enable=YES'.format(JailName, daemon)
+        print ('Mock exec: {}'.format(cmd))
+        print ('Exit code: {}'.format(str(execNWait(cmd))))
+
+        cmd = 'sudo iocage exec {} service {} start'.format(JailName, daemon)
+        print ('Mock exec: {}'.format(cmd))
+        print ('Exit code: {}'.format(str(execNWait(cmd))))
+
+
     # create user account
     cmd = 'echo {} | pw useradd {} -h 0 -m -s {}'.format(doc['user']['pwd'], doc['user']['id'], doc['user']['shell'])
     print ('Create user exit code: {}'.format(str(execNWait('sudo iocage exec {} "{}"'.format(JailName, cmd)))))
 
     # exec raw cli
     for cmd in doc['cli']:
-        if cmd.find('|') > -1:
+        if cmd.find('|') > -1 or cmd.find('>') > -1:
             cmd = '"' + cmd + '"'
 
         cmd = 'sudo iocage exec {} {}'.format(JailName, cmd)
@@ -78,7 +89,7 @@ def execNWaitShell(cmd):
     return child.poll()
 
 def execNWait(cmd):
-    if cmd.find('|') > -1:
+    if cmd.find('|') > -1 or cmd.find('>') > -1:
         # exec in shell mode
         return execNWaitShell(cmd)
 

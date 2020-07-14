@@ -9,9 +9,13 @@ pkg:
   - zsh
   - sudo
   - curl
+service:
+  - sshd
 cli:
   - touch /home/app/.zshrc
-  - mkdir -p /home/app/.ssh/authorized_keys
+  - mkdir -p /home/app/.ssh
+  - chown app:app /home/app/.ssh
+  - curl https://raw.githubusercontent.com/jhfoo/jailtoolkit/master/conf/id-rsa-jill.pub > /home/app/.ssh/authorized_keys
   - chown app:app /home/app/.ssh/authorized_keys
 user:
   id: app
