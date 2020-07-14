@@ -1,0 +1,18 @@
+iocage:
+  boot: true
+  bpf: true
+  dhcp: true
+  release: 12.1-RELEASE
+  vnet: yes
+  vnet_default_interface: jailvlan 
+pkg:
+  - zsh
+  - sudo
+cli:
+  - echo plschangeme | pw useradd app -h 0 -m -s /usr/local/bin/zsh
+  - touch /home/app/.zshrc
+user:
+  id: app
+  pwd: plschangeme
+  name: App Account
+  shell: zsh
