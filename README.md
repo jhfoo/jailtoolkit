@@ -6,6 +6,7 @@ A set of scripts and configuration to assist FreeBSD administrators to autommate
 
 ## Requirements
 - [FreeBSD 12.1 (RELEASE)](https://www.freebsd.org/where.html)
+- Python 3.7
 - [Iocage 1.2](https://github.com/iocage/iocage)
 - [Consul 1.7](https://www.consul.io/)
 
