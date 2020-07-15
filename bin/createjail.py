@@ -6,28 +6,47 @@ import subprocess
 AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__) + '..'))
 JailName = None
 JailTemplate = None
+JailHostTemplate = None
 YAMLKEY_PKG = 'pkg'
 YAMLKEY_SERVICE = 'service'
 YAMLKEY_CLI = 'cli'
+YAMLKEY_IOCAGE = 'iocage'
+YAMLKEY_JAILNAME = 'jailname'
 
 def parseOptions():
-    global JailName, JailTemplate
+    global JailName, JailTemplate, JailHostTemplate
     args = sys.argv.copy()
     args.pop(0)
 
     while len(args) > 0:
         cell = args.pop(0)
-        if (cell == '-t'):
+        if cell == '-t':
             JailTemplate = args.pop(0)
+            continue
+        if cell == '-h':
+            JailHostTemplate = args.pop(0)
+            continue
+        if (JailName == None):
+            JailName = cell
+            continue
         else:
-            if (JailName == None):
-                JailName = cell
-            else:
-                print ('ERROR: Unexpected param ' + cell)
-                sys.exit(2)
+            print ('ERROR: Unexpected param ' + cell)
+            sys.exit(2)
 
 def validateCliArguments():
-    if (len(sys.argv) == 1):
+    isSuccess = True
+    while True:
+        if (len(sys.argv) == 1):
+            print('ERROR: Missing argument(s)')
+            isSuccess = false
+            break
+        if JailName == None and JailHostTemplate == None:
+            print('ERROR: Missing jail name')
+            isSuccess = false
+            break
+        break
+
+    if isSuccess == False:
         print('Usage: createjail jail_name [template]')
         sys.exit(1)
 
@@ -49,10 +68,10 @@ def getYamlInPath(TargetPath):
     return ret
 
 def loadTemplate():
-    print ('Jail name: {}'.format(JailName))
-    print ('Jail template: {}'.format(JailTemplate))
+    global JailName
     doc = readYamlFile(AppBasePath + '/conf/createjail-default.yaml')
 
+    # load jail template if defined
     if JailTemplate != None:
         for MergeDoc in getYamlInPath(AppBasePath + '/jails/' + JailTemplate):
             # print ('TemplateFile: ' + TemplateFile)
@@ -61,6 +80,24 @@ def loadTemplate():
                     for item in MergeDoc[key]:
                         doc[key].append(item)
 
+    # load host template if defined
+    if JailHostTemplate != None:
+        MergeDoc = readYamlFile('{}/hosts/{}/create-host.yaml'.format(AppBasePath, JailHostTemplate))
+        print (MergeDoc)
+        for key in [YAMLKEY_PKG, YAMLKEY_SERVICE, YAMLKEY_CLI]:
+            if key in MergeDoc:
+                for item in MergeDoc[key]:
+                    doc[key].append(item)
+
+        if YAMLKEY_IOCAGE in MergeDoc:
+            for key in MergeDoc[YAMLKEY_IOCAGE]:
+                doc[YAMLKEY_IOCAGE][key] = MergeDoc[YAMLKEY_IOCAGE][key]
+
+        if YAMLKEY_JAILNAME in MergeDoc:
+            JailName = MergeDoc[YAMLKEY_JAILNAME]
+
+    print ('Jail name: {}'.format(JailName))
+    print ('Jail template: {}'.format(JailTemplate))
     return doc
 
 def execTemplate(doc):
@@ -147,11 +184,11 @@ def execNWait(cmd):
         print (out.decode('utf-8'))
         print (err.decode('utf-8'))
 
-validateCliArguments()
 parseOptions()
+validateCliArguments()
 doc = loadTemplate()
 print (doc)
-execTemplate(doc)
+# execTemplate(doc)
 
 # print ('Exit code: {}'.format(str(execNWait('sudo iocage destroy -f {}'.format(JailName)))))
 
