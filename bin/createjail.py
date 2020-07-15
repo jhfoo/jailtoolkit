@@ -6,6 +6,9 @@ import subprocess
 AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__) + '..'))
 JailName = None
 JailTemplate = None
+YAMLKEY_PKG = 'pkg'
+YAMLKEY_SERVICE = 'service'
+YAMLKEY_CLI = 'cli'
 
 def parseOptions():
     global JailName, JailTemplate
@@ -28,11 +31,37 @@ def validateCliArguments():
         print('Usage: createjail jail_name [template]')
         sys.exit(1)
 
+def readYamlFile(fname):
+    InFile = open(fname,'r')
+    doc = yaml.load(InFile.read(), Loader=yaml.FullLoader)
+    InFile.close()
+    return doc
+
+def getYamlInPath(TargetPath):
+    ret = []
+    for DirItem in os.listdir(TargetPath):
+        ItemFullPath = TargetPath + '/' + DirItem
+        if (DirItem.startswith('createjail')
+            and DirItem.endswith('.yaml') 
+            and os.path.isfile(ItemFullPath)):
+            ret.append(readYamlFile(TargetPath + '/' + DirItem))
+
+    return ret
+
 def loadTemplate():
     print ('Jail name: {}'.format(JailName))
     print ('Jail template: {}'.format(JailTemplate))
-    InFile = open(AppBasePath + '/conf/createjail-default.yaml','r')
-    return yaml.load(InFile.read(), Loader=yaml.FullLoader)
+    doc = readYamlFile(AppBasePath + '/conf/createjail-default.yaml')
+
+    if JailTemplate != None:
+        for MergeDoc in getYamlInPath(AppBasePath + '/jails/' + JailTemplate):
+            # print ('TemplateFile: ' + TemplateFile)
+            for key in [YAMLKEY_PKG, YAMLKEY_SERVICE, YAMLKEY_CLI]:
+                if key in MergeDoc:
+                    for item in MergeDoc[key]:
+                        doc[key].append(item)
+
+    return doc
 
 def execTemplate(doc):
     cmd = 'sudo iocage create -r {} -n {}'.format(doc['iocage']['release'], JailName)
@@ -78,7 +107,7 @@ def execTemplate(doc):
         if cmd.find('|') > -1 or cmd.find('>') > -1:
             cmd = '"' + cmd + '"'
 
-        cmd = 'sudo iocage exec {} {}'.format(JailName, cmd)
+        cmd = 'sudo iocage exec {} -- {}'.format(JailName, cmd)
         print ('Mock exec: {}'.format(cmd))
         print ('Exit code: {}'.format(str(execNWait(cmd))))
 
@@ -121,7 +150,7 @@ def execNWait(cmd):
 validateCliArguments()
 parseOptions()
 doc = loadTemplate()
-# print (doc)
+print (doc)
 execTemplate(doc)
 
 # print ('Exit code: {}'.format(str(execNWait('sudo iocage destroy -f {}'.format(JailName)))))

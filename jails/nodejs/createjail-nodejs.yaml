@@ -1,0 +1,7 @@
+pkg:
+  - node
+  - npm
+cli:
+  - mkdir -p /usr/local/etc/rc.d
+  - sudo -i -u app npm i pm2
+  - /usr/home/app/node_modules/pm2/bin/pm2 startup rcd -u app --hp /home/app
