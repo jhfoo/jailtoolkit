@@ -7,3 +7,11 @@ pkg:
   - dnsmasq
 jail:
   - nodejs
+tasks:
+  - copy:
+    source: github:jhfoo/jailtoolkit/:/hosts/dhcp-jill/createjail-vars.yaml
+    dest: /home/{{UserId}}/test
+
+
+
+

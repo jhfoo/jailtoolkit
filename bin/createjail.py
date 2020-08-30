@@ -10,25 +10,28 @@ import lib.util as util
 AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__) + '..'))
 JailName = None
 JailTemplate = None
+TemplateName = None
 JailHostTemplate = None
 JailVarsHost = None
 JailVars = None
+isSimulateExec = False
 YAMLKEY_PKG = 'pkg'
 YAMLKEY_SERVICE = 'service'
-YAMLKEY_CLI = 'cli'
+# YAMLKEY_CLI = 'cli'
 YAMLKEY_IOCAGE = 'iocage'
 YAMLKEY_JAILNAME = 'jailname'
 YAMLKEY_VAR = 'var'
 YAMLKEY_JAIL = 'jail'
+YAMLKEY_TASKS = 'tasks'
 
 def parseOptions():
-    global JailName, JailTemplate, JailHostTemplate, JailVarsHost
+    global JailName, JailTemplate, JailHostTemplate, JailVarsHost, isSimulateExec, TemplateName
     args = sys.argv.copy()
     args.pop(0)
 
     while len(args) > 0:
         cell = args.pop(0)
-        if cell == '-t':
+        if cell == '-j':
             JailTemplate = args.pop(0)
             continue
         if cell == '-h':
@@ -39,6 +42,12 @@ def parseOptions():
             continue
         if (JailName == None):
             JailName = cell
+            continue
+        if cell == '-s':
+            isSimulateExec = True
+            continue
+        if cell == '-t':
+            TemplateName = args.pop(0)
             continue
         else:
             print ('ERROR: Unexpected param ' + cell)
@@ -61,15 +70,18 @@ def validateCliArguments():
         print('Usage: createjail jail_name [template]')
         sys.exit(1)
 
+# Loads yaml file, applies variables, returns Dictionary obj
 def readYamlFile(fname, vars={}):
     InFile = open(fname,'r')
     RawData = InFile.read()
     InFile.close()
 
-    if YAMLKEY_VAR in vars:
-        for key in vars[YAMLKEY_VAR]:
-            RawData = RawData.replace('{{' + key + '}}', vars[YAMLKEY_VAR][key])
-        print (RawData)
+    print (vars)
+    # if YAMLKEY_VAR in vars:
+    for key in vars.keys():
+        print ('Search and replace: {}'.format(key))
+        RawData = RawData.replace('{{' + key + '}}', vars[key])
+    print (RawData)
     doc = yaml.load(RawData, Loader=yaml.FullLoader)
     return doc
 
@@ -95,10 +107,19 @@ def mergeJailTemplate(ThisJailTemplate, MasterDoc):
                 mergeJailTemplate(DependentJail, MasterDoc)
 
         # print ('TemplateFile: ' + TemplateFile)
-        for key in [YAMLKEY_PKG, YAMLKEY_SERVICE, YAMLKEY_CLI]:
+        # merge only specific keys
+        for key in [YAMLKEY_PKG, YAMLKEY_SERVICE, YAMLKEY_TASKS]:
+            print ('key: {}'.format(key))
             if key in MergeDoc:
-                for item in MergeDoc[key]:
-                    MasterDoc[key].append(item)
+                if key in MasterDoc:
+                    # key exists in merged doc
+                    # NOTE: value type is always Array
+                    for item in MergeDoc[key]:
+                        MasterDoc[key].append(item)
+                else:
+                    # key not exist in merged doc: copy as-is from source
+                    print ('{} is not in master'.format(key))
+                    MasterDoc[key] = MergeDoc[key]
 
         if YAMLKEY_JAILNAME in MergeDoc:
             JailName = MergeDoc[YAMLKEY_JAILNAME]
@@ -108,17 +129,18 @@ def loadTemplate():
     global JailVars
 
     # load host variables
-    JailVars = {}
+    JailVars = readYamlFile('{}/conf/createjail-defaultvars.yaml'.format(AppBasePath))
     if JailVarsHost != None:
-        readYamlFile('{}/hosts/{}/createjail-vars.yaml'.format(AppBasePath, JailVarsHost))
-    print (JailVars)
+        JailVars = readYamlFile('{}/hosts/{}/createjail-vars.yaml'.format(AppBasePath, JailVarsHost))
+    JailVars['USER_HOME'] = '/home/{}/'.format(JailVars['UserId'])
+    print (json.dumps(JailVars, indent=4, sort_keys=True))
 
     # load default/ base config
-    doc = readYamlFile(AppBasePath + '/conf/createjail-default.yaml', JailVars)
+    doc = readYamlFile('{}/conf/createjail-default.yaml'.format(AppBasePath), JailVars)
 
-    # load jail template if defined
+    # override template with JailTemplate if defined
     if JailTemplate != None:
-        # this is resursive
+        # this is recursive
         mergeJailTemplate(JailTemplate, doc)
 
     # load host template if defined
@@ -134,17 +156,42 @@ def loadTemplate():
     #         for key in MergeDoc[YAMLKEY_IOCAGE]:
     #             doc[YAMLKEY_IOCAGE][key] = MergeDoc[YAMLKEY_IOCAGE][key]
 
+    if TemplateName != None:
+        # convert jail to template
+        util.execNWait('sudo iocage stop {}'.format(JailName))
 
     print ('Jail name: {}'.format(JailName))
     print ('Jail template: {}'.format(JailTemplate))
     return doc
+
+def execCli(cmd):
+    if cmd.find('|') > -1 or cmd.find('>') > -1:
+        cmd = '"' + cmd + '"'
+
+    cmd = 'sudo iocage exec {} -- {}'.format(JailName, cmd)
+    print ('Mock exec: {}'.format(cmd))
+    util.execNWait(cmd)
+
+def execCopy(cmd):
+    source = cmd['source'].split(':')
+    SourceType = source[0].strip()
+    SourceRepo: source[1].strip()
+    if SourceType == 'github':
+        url = 'https://raw.githubusercontent.com/{}'.format(SourceRepo)
+        ExecCmd = 'sudo iocage exec {} -- sudo -u {} -i -- sh -c "cd {}; curl -O {}"'
+            .format(JailName, doc['user']['id'], cmd['dest'], url)
+        print (ExecCmd)
+        # util.execNWait(ExecCmd)
+        print ('Copy from github')
+    else:
+        raise Exception('Unhandled source type: {}'.format(SourceType))
 
 def execTemplate(doc):
     try:
         # core iocage commands
         cmd = 'sudo iocage create -r {} -n {}'.format(doc['iocage']['release'], JailName)
         print ('Mock exec: {}'.format(cmd))
-        print ('Exit code: {}'.format(str(util.execNWait(cmd))))
+        util.execNWait(cmd)
         for key in doc['iocage'].keys():
             # blacklist keys from being applied to jail config
             if key in ['release', 'whatev']:
@@ -181,7 +228,7 @@ def execTemplate(doc):
 
         cmd = 'sudo iocage exec {} service {} start'.format(JailName, daemon)
         print ('Mock exec: {}'.format(cmd))
-        util.execNWait(cmd)
+        util.execNWait(doc, cmd)
 
 
     # create user account
@@ -190,13 +237,16 @@ def execTemplate(doc):
     util.execNWait('sudo iocage exec {} "{}"'.format(JailName, cmd))
 
     # exec raw cli
-    for cmd in doc['cli']:
-        if cmd.find('|') > -1 or cmd.find('>') > -1:
-            cmd = '"' + cmd + '"'
-
-        cmd = 'sudo iocage exec {} -- {}'.format(JailName, cmd)
-        print ('Mock exec: {}'.format(cmd))
-        util.execNWait(cmd)
+    for cmd in doc[YAMLKEY_TASKS]:
+        if 'cli' in cmd.keys():
+            execCli(cmd['cli'])
+        elif 'type' in cmd.keys():
+            if cmd['type'] == 'cli':
+                execCli(cmd['exec'])
+            elif cmd['type'] == 'copy':
+                execCopy(cmd)
+            else:
+                raise Exception('Unhandled task type: {}'.format(cmd['type']))
 
 
 
@@ -226,8 +276,9 @@ parseOptions()
 doc = loadTemplate()
 validateTemplate(doc)
 validateCliArguments()
-print (json.dumps(doc, indent=4, sort_keys=True))
-execTemplate(doc)
+print (json.dumps(doc, indent=4))
+if isSimulateExec == False:
+    execTemplate(doc)
 
 # print ('Exit code: {}'.format(str(util.execNWait('sudo iocage destroy -f {}'.format(JailName)))))
 

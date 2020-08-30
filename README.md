@@ -40,6 +40,16 @@ python bin/createjail.py jailname
 - References files in 
   - conf/createjail-default.yaml
   - hosts/[hostname]/createjail-vars.yaml
+- Jail creation sequence (NOTE: to be validated)
+  - Jail creation and config
+  - Install pkgs 
+  - Create user
+  - Exec tasks
+  - Start services
+  - Restart jail
+- Default creation script includes
+  - Create app user SSH (TBC)
+  - Basic .zshrc
 
 ### bin/createjail [jail name] - DEPRECATED
 - Creates jail on DHCP
