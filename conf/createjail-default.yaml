@@ -12,14 +12,16 @@ pkg:
 service:
   - sshd
 tasks:
-  - cli: touch {{USER_HOME}}.zshrc
+  - cli: sudo -u {{UserId}} -i -- sh -c "touch {{USER_HOME}}.zshrc"
   - cli: mkdir -p {{USER_HOME}}.ssh
   - cli: chown app:app {{USER_HOME}}.ssh
-  - cli: curl https://raw.githubusercontent.com/jhfoo/jailtoolkit/master/conf/id-rsa-jill.pub > {{USER_HOME}}.ssh/authorized_keys
+  - type: copy
+    source: https://raw.githubusercontent.com/jhfoo/jailtoolkit/master/conf/id-rsa-jill.pub
+    dest: {{USER_HOME}}.ssh/authorized_keys
   - cli: chown {{UserId}}:{{UserId}} {{USER_HOME}}.ssh/authorized_keys
   - type: copy
     source: github:jhfoo/jailtoolkit/master/conf/.zshrc
-    dest: {{USER_HOME}}
+    dest: {{USER_HOME}}.zshrc
 user:
   id: {{UserId}}
   pwd: plschangeme

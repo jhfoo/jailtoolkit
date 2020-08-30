@@ -172,17 +172,22 @@ def execCli(cmd):
     print ('Mock exec: {}'.format(cmd))
     util.execNWait(cmd)
 
-def execCopy(cmd):
+def execCopy(doc, cmd):
     source = cmd['source'].split(':')
     SourceType = source[0].strip()
-    SourceRepo: source[1].strip()
     if SourceType == 'github':
+        SourceRepo = source[1].strip()
         url = 'https://raw.githubusercontent.com/{}'.format(SourceRepo)
-        ExecCmd = 'sudo iocage exec {} -- sudo -u {} -i -- sh -c "cd {}; curl -O {}"'
-            .format(JailName, doc['user']['id'], cmd['dest'], url)
+        ExecCmd = 'sudo iocage exec {} -- sudo -u {} -i -- sh -c "curl {} > {}"'.format(JailName, doc['user']['id'], url, cmd['dest'])
         print (ExecCmd)
-        # util.execNWait(ExecCmd)
+        util.execNWait(ExecCmd)
         print ('Copy from github')
+    elif SourceType == 'http' or SourceType == 'https':
+        url = cmd['source']
+        ExecCmd = 'sudo iocage exec {} -- sudo -u {} -i -- sh -c "curl {} > {}"'.format(JailName, doc['user']['id'], url, cmd['dest'])
+        print (ExecCmd)
+        util.execNWait(ExecCmd)
+        print ('Copy from http(s)')
     else:
         raise Exception('Unhandled source type: {}'.format(SourceType))
 
@@ -228,7 +233,7 @@ def execTemplate(doc):
 
         cmd = 'sudo iocage exec {} service {} start'.format(JailName, daemon)
         print ('Mock exec: {}'.format(cmd))
-        util.execNWait(doc, cmd)
+        util.execNWait(cmd)
 
 
     # create user account
@@ -244,7 +249,7 @@ def execTemplate(doc):
             if cmd['type'] == 'cli':
                 execCli(cmd['exec'])
             elif cmd['type'] == 'copy':
-                execCopy(cmd)
+                execCopy(doc, cmd)
             else:
                 raise Exception('Unhandled task type: {}'.format(cmd['type']))
 

@@ -8,7 +8,7 @@ def execNWaitShell(cmd):
 
 def execNWait(cmd, isTest4Shell=True, isContinueOnError=False):
     if isTest4Shell == True:
-        if cmd.find('|') > -1 or cmd.find('>') > -1:
+        if cmd.find('|') > -1 or cmd.find('>') > -1 or cmd.find('"') > -1:
             # exec in shell mode
             return execNWaitShell(cmd)
 
