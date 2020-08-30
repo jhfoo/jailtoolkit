@@ -191,56 +191,43 @@ def execCopy(doc, cmd):
     else:
         raise Exception('Unhandled source type: {}'.format(SourceType))
 
-def execTemplate(doc):
-    try:
-        # core iocage commands
-        cmd = 'sudo iocage create -r {} -n {}'.format(doc['iocage']['release'], JailName)
+def execCreateJail(doc):
+    # core iocage commands
+    cmd = 'sudo iocage create -r {} -n {}'.format(doc['iocage']['release'], JailName)
+    print ('Mock exec: {}'.format(cmd))
+    util.execNWait(cmd)
+    for key in doc['iocage'].keys():
+        # blacklist keys from being applied to jail config
+        if key in ['release', 'whatev']:
+            continue
+
+        # apply key to jail config
+        value = doc['iocage'][key]
+        if isinstance(value, bool):
+            value = 1 if value == True else 0
+        cmd = 'sudo iocage set {}={} {}'.format(key, value, JailName)
         print ('Mock exec: {}'.format(cmd))
-        util.execNWait(cmd)
-        for key in doc['iocage'].keys():
-            # blacklist keys from being applied to jail config
-            if key in ['release', 'whatev']:
-                continue
+        util.execNWait(cmd, isTest4Shell=False)
 
-            # apply key to jail config
-            value = doc['iocage'][key]
-            if isinstance(value, bool):
-                value = 1 if value == True else 0
-            cmd = 'sudo iocage set {}={} {}'.format(key, value, JailName)
-            print ('Mock exec: {}'.format(cmd))
-            util.execNWait(cmd, isTest4Shell=False)
+    # start jail (required to exec)
+    cmd = 'sudo iocage start {}'.format(JailName)
+    util.execNWait(cmd)
+    print ('Mock exec: {}'.format(cmd))
 
-        # start jail (required to exec)
-        cmd = 'sudo iocage start {}'.format(JailName)
-        util.execNWait(cmd)
-        print ('Mock exec: {}'.format(cmd))
-    except Exception as err:
-        print (err.args[0])
-        return False
-
-
+def execPkgInstall(doc):
     # install packages
     for PkgName in doc['pkg']:
         cmd = 'sudo iocage exec {} pkg install -y {}'.format(JailName, PkgName)
         print ('Mock exec: {}'.format(cmd))
         util.execNWait(cmd)
 
-    # start simple services
-    for daemon in doc['service']:
-        cmd = 'sudo iocage exec {} sysrc {}_enable=YES'.format(JailName, daemon)
-        print ('Mock exec: {}'.format(cmd))
-        util.execNWait(cmd)
-
-        cmd = 'sudo iocage exec {} service {} start'.format(JailName, daemon)
-        print ('Mock exec: {}'.format(cmd))
-        util.execNWait(cmd)
-
-
+def execUserCreate(doc):
     # create user account
     cmd = 'echo {} | pw useradd {} -h 0 -m -s {}'.format(doc['user']['pwd'], doc['user']['id'], doc['user']['shell'])
     print ('Create user: {}'.format(doc['user']['id']))
     util.execNWait('sudo iocage exec {} "{}"'.format(JailName, cmd))
 
+def execTasks(doc):
     # exec raw cli
     for cmd in doc[YAMLKEY_TASKS]:
         if 'cli' in cmd.keys():
@@ -253,7 +240,26 @@ def execTemplate(doc):
             else:
                 raise Exception('Unhandled task type: {}'.format(cmd['type']))
 
+def execTemplate(doc):
+    try:
+        execCreateJail(doc)
+        execPkgInstall(doc)
+        execUserCreate(doc)
 
+        # start simple services
+        for daemon in doc['service']:
+            cmd = 'sudo iocage exec {} sysrc {}_enable=YES'.format(JailName, daemon)
+            print ('Mock exec: {}'.format(cmd))
+            util.execNWait(cmd)
+
+            cmd = 'sudo iocage exec {} service {} start'.format(JailName, daemon)
+            print ('Mock exec: {}'.format(cmd))
+            util.execNWait(cmd)
+
+        execTasks(doc)
+    except Exception as err:
+        print (err.args[0])
+        return False
 
 def validatePython():
     if sys.version_info[0] < 3 or sys.version_info[1] < 7:
