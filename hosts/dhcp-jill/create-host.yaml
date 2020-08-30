@@ -1,9 +1,0 @@
-jailname: test-jill
-iocage:
-  dhcp: false
-  ip4_addr: vnet0|192.168.60.2/24
-  defaultrouter: 192.168.60.1
-pkg:
-  - dnsmasq
-jail:
-  - nodejs

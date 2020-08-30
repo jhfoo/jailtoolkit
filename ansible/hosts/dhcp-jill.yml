@@ -1,0 +1,4 @@
+hostname: dhcp-jill
+hostip: 192.168.60.2/24
+iocage:
+  ip4_addr: vnet0|192.168.60.2/24

@@ -1,0 +1,5 @@
+default:
+  iocage:
+    boot: true
+    bpf: true
+    vnet: true

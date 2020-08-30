@@ -1,0 +1,17 @@
+- name: test my new module
+  vars_files:
+  - vars/default.yml
+  hosts: localhost
+  tasks:
+  - name: run the new module
+    jailtoolkit:
+      name: welcome
+      hostname: "{{hostname}}"
+      default: "{{default}}"
+      iocage: "{{iocage}}"
+      iocagekey: "{{default.iocage.bpf}}"
+      new: no
+    register: testout
+  - name: dump test output
+    debug:
+      msg: '{{ testout }}'

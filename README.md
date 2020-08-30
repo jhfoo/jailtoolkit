@@ -4,6 +4,9 @@ Toolkit to manage jail deployment with applications
 ## Goal
 A set of scripts and configuration to assist FreeBSD administrators to automate application deployment in jails with 'sidecar' apps like Consul to manage them collectively.
 
+## Implementation
+Heavy dependency on iocage and Python.
+
 ## Requirements
 - [FreeBSD 12.1 (RELEASE)](https://www.freebsd.org/where.html)
 - Python 3.7
@@ -24,7 +27,21 @@ cd jailtoolkit/bin
 ~~~
 
 ## Key scripts
-### bin/createjail [jail name]
+### bin/createjail.py
+- Collates template configurations to create primarily a vnet, DHCP-based jail
+- Run syntax
+```
+python bin/createjail.py jailname [-t jailtemplate] [-h hosttemplate] [-v varstemplate]
+```
+- Sample create
+```
+python bin/createjail.py jailname
+```
+- References files in 
+  - conf/createjail-default.yaml
+  - hosts/[hostname]/createjail-vars.yaml
+
+### bin/createjail [jail name] - DEPRECATED
 - Creates jail on DHCP
 - Installs basic packages eg. Git
 - Creates app account with Zsh shell

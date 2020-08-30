@@ -1,0 +1,9 @@
+jailname: {{jailname}}
+iocage:
+  dhcp: false
+  ip4_addr: vnet0|{hostip}
+  defaultrouter: {{defaultrouter}}
+pkg:
+  - dnsmasq
+jail:
+  - nodejs
