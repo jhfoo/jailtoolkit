@@ -24,6 +24,9 @@ To be used on a non-root account with sudo capabilities (wheel group?)
 git clone https://github.com/jhfoo/jailtoolkit.git
 cd jailtoolkit/bin
 ./install.sh
+# install dependencies
+# assumes Python 3.7 installed
+sudo pkg install -y py37-yaml
 ~~~
 
 ## Key scripts
