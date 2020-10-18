@@ -6,19 +6,20 @@ def execNWaitShell(cmd):
     print (out)
     return child.poll()
 
-def execNWait(cmd, isTest4Shell=True, isContinueOnError=False):
+def execNWait(cmd, isTest4Shell=True, isContinueOnError=False, isPrintRealtime=True, isForceShellExec=False):
     if isTest4Shell == True:
-        if cmd.find('|') > -1 or cmd.find('>') > -1 or cmd.find('"') > -1:
+        if isForceShellExec or cmd.find('|') > -1 or cmd.find('>') > -1 or cmd.find('"') > -1:
             # exec in shell mode
             return execNWaitShell(cmd)
 
     # shell = false
     cmd = cmd.split()
     child = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    response = ''
     try:
         while True:
-            line = child.stdout.readline().decode('utf-8').strip()
-            err = child.stderr.readline().decode('utf-8').strip()
+            line = child.stdout.read().decode('utf-8')
+            err = child.stderr.read().decode('utf-8')
             # always print error messages
             if err != '':
                 print (err)
@@ -28,11 +29,20 @@ def execNWait(cmd, isTest4Shell=True, isContinueOnError=False):
                 if code != None:
                     if code > 0 and isContinueOnError == False:
                         raise Exception('FAILED (code {}): {}'.format(code, cmd))
-                    print ('Exit code: {}'.format(str(code)))            
-                    return code
-            else:
-                print (line)
+                    # print ('Exit code: {}'.format(str(code)))
 
+                    if isPrintRealtime:
+                        return code
+                    else:
+                        return {
+                            'output': response,
+                            'ExitCode': code
+                        }
+            else:
+                response += line
+                if isPrintRealtime:
+                    print (line)
+        
     except subprocess.TimeoutExpired as err:
         print ('*** Terminating process')
         child.kill()
