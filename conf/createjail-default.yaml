@@ -2,7 +2,7 @@ iocage:
   boot: true
   bpf: true
   dhcp: true
-  release: 12.1-RELEASE
+  release: 12.2-RELEASE
   vnet: yes
   vnet_default_interface: jailvlan 
 pkg:
