@@ -1,0 +1,26 @@
+#!/usr/local/bin/python
+# core modules
+import os
+import sys
+import shutil
+
+AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
+
+print (os.path.abspath(__file__))
+
+def parseOptions():
+    args = sys.argv.copy()
+    args.pop(0)
+
+    while len(args) > 0:
+        param = args.pop(0)
+        if param == 'install':
+            print ('WARNING: You must be root or running-as root to install to /usr/local/bin')
+            shutil.copyfile(os.path.abspath(__file__), '/usr/local/bin/jailmin')
+            print ('jailmin installed')
+            continue
+        else:
+            print ('ERROR: Unexpected param ' + cell)
+            sys.exit(2)
+
+parseOptions()
