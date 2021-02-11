@@ -1,4 +1,5 @@
 import subprocess
+import yaml
 
 def execNWaitShell(cmd):
     child = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -49,3 +50,16 @@ def execNWait(cmd, isTest4Shell=True, isContinueOnError=False, isPrintRealtime=T
         out, err = child.communicate()
         print (out.decode('utf-8'))
         print (err.decode('utf-8'))
+
+# Loads yaml file, applies variables, returns Dictionary obj
+def readYamlFile(fname, vars={}):
+    InFile = open(fname,'r')
+    RawData = InFile.read()
+    InFile.close()
+
+    # if YAMLKEY_VAR in vars:
+    for key in vars.keys():
+        print ('Search and replace: {}'.format(key))
+        RawData = RawData.replace('{{' + key + '}}', vars[key])
+    doc = yaml.load(RawData, Loader=yaml.FullLoader)
+    return doc

@@ -1,0 +1,13 @@
+name: consul
+release: 12.2-RELEASE
+props:
+  vnet: true
+  dhcp: false
+  bpf: true
+  resolver: 192.168.88.3
+  defaultrouter: 192.168.80.1
+  ip4_addr: vnet0|192.168.80.88/24
+  vnet_default_interface: jailvlan
+pkgs:
+  - zsh
+  - consul

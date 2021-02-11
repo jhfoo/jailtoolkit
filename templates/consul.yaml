@@ -1,0 +1,13 @@
+name: consul
+release: 12.2-RELEASE
+props:
+  vnet: true
+  ip4_addr: none
+  defaultrouter: none
+  dhcp: true
+  bpf: true
+  resolver: /dev/null
+  vnet_default_interface: jailvlan
+pkgs:
+  - zsh
+  - consul
