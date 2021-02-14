@@ -1,3 +1,4 @@
+import re
 import subprocess
 import yaml
 
@@ -52,14 +53,19 @@ def execNWait(cmd, isTest4Shell=True, isContinueOnError=False, isPrintRealtime=T
         print (err.decode('utf-8'))
 
 # Loads yaml file, applies variables, returns Dictionary obj
-def readYamlFile(fname, vars={}):
+def readYamlFile(fname, vars=None):
     InFile = open(fname,'r')
     RawData = InFile.read()
     InFile.close()
 
-    # if YAMLKEY_VAR in vars:
-    for key in vars.keys():
-        print ('Search and replace: {}'.format(key))
-        RawData = RawData.replace('{{' + key + '}}', vars[key])
+    if (vars != None):
+        print ('Substituting {} variables...'.format(len(vars.keys())))
+        for key in vars.keys():
+            RawData = RawData.replace('{{' + key + '}}', vars[key])
+
+    # replace unmapped {{varname}} into $$varname$$
+    for key in re.findall('{{[A-Za-z]+}}', RawData):
+        VarName = key[2:-2]
+        RawData = RawData.replace(key, '$${}$$'.format(VarName))
     doc = yaml.load(RawData, Loader=yaml.FullLoader)
     return doc

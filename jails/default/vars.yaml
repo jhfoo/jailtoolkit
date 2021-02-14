@@ -1,0 +1,4 @@
+vars:
+  none: none
+props:
+  allow_raw_sockets: true

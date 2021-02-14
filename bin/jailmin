@@ -4,111 +4,117 @@ import os
 import sys
 import shutil
 import re
+import json
 # custom modules
 import lib.util as util
+import lib.jailminlib as jailminlib
 
 AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 TemplatePath = '/usr/local/etc/jailmin/' if (AppBasePath.startswith('/usr/local/bin/')) else os.path.abspath('./')
 
 print (os.path.abspath(__file__))
 
-def getTemplates():
-  templates = []
-  ExecResult = util.execNWait('sudo iocage list -t', isPrintRealtime = False)
-  if (ExecResult['ExitCode'] == 0):
-    lines = ExecResult['output'].split('\n')
-    if (len(lines) > 3):
-      lines.pop(0)
-      lines.pop(0)
-      lines.pop(0)
+def doTask(BuildConfig, task):
+  print ('TASK: {}'.format(task['name']))
+  if (task['do'] == 'jailexec'):
+    util.execNWait('sudo iocage exec {} "{}"'.format(BuildConfig['name'], task['cmd']))
+    return
 
-    for line in lines:
-      columns = line.split('|')
-      if (len(columns) == 7):
-        fields = {
-          'jid': columns[1].strip(),
-          'name': columns[2].strip(),
-          'state': columns[3].strip(),
-          'release': columns[4].strip(),
-          'address': columns[5].strip(),
-        }
-        templates.append(fields)
+  if (task['do'] == 'copy'):
+    if (task['ApplyVars'] == True):
+      # apply vars to text file
+      print (task['src'])
+      print (task['dest'])
+      return
+      InFile = open(task['src'],'r')
+      RawData = InFile.read()
+      InFile.close()
 
-  return templates
+      for key in vars.keys():
+          RawData = RawData.replace('{{' + key + '}}', vars[key])
 
-def getPropValue(value):
-  if (type(value) is bool):
-    return 1 if (value == True) else 0
-  # if (type(value) is str):
-  return value
+      OutFile = open(task['dest'],'w')
+      OutFile.write(RawData)
+      OutFile.close()
+    else:
+      # binary copy
+      util.execNWait('sudo copy {} {}'.format(task['src'], task['dest']))
+    return
 
-def getJailProps(JailName):
-  RawJailProps = util.execNWait('sudo iocage get all {}'.format(JailName), isPrintRealtime = False, isContinueOnError = True)
-  if (RawJailProps['ExitCode'] != 0):
-    # jail does not exist
-    return None
+def buildTemplate(BuildName, VarFile = None):
+  vars = jailminlib.getVars(None if (VarFile == None) else TemplatePath + '/jails/' + VarFile + '/vars.yaml')
+  BuildConfig = jailminlib.getMergedTemplate(BuildName, vars)
+  # post-merge var processing
+  # iterate config selectively: light pass through tasks
+  DefaultVars = {
+    'JAILROOT': '/zroot/iocage/jails/{}/'.format(BuildConfig['name']),
+    'TEMPLATEROOT': '{}/templates/{}/'.format(TemplatePath, BuildConfig['name'])
+  }
 
-  props = {}
-  for line in RawJailProps['output'].split('\n'):
-    columns = line.split(':')
-    if (len(columns) > 1):
-      props[columns[0]] = columns[1]
-  return props
+  for task in BuildConfig['tasks']:
+    for key in task.keys():
+      if (type(task[key]) is str):
+        for VarName in re.findall('\$\$[A-Za-z]+\$\$', task[key]):
+          task[key] = task[key].replace(VarName, DefaultVars[VarName[2:-2]])
 
-def setProps(YamlFile):
-  BuildConfig = util.readYamlFile(TemplatePath + '/templates/' + YamlFile + '.yaml')
-  props = getJailProps(BuildConfig['name'])
-  if (props != None and props['state'] == 'up'):
-    print ('{} is running: stopping'.format(BuildConfig['name']))
-    util.execNWait('sudo iocage stop {}'.format(BuildConfig['name']))
+  # print (json.dumps(BuildConfig, indent=2))
 
-  for key in BuildConfig['props'].keys():
-    print ('{} = "{}"'.format(key, getPropValue(BuildConfig['props'][key]), BuildConfig['name']))
-    util.execNWait('sudo iocage set {}="{}" {}'.format(key, getPropValue(BuildConfig['props'][key]), BuildConfig['name']))
-
-def buildTemplate(BuildName):
-  BuildConfig = util.readYamlFile(TemplatePath + '/templates/' + BuildName + '.yaml')
-  print (BuildConfig)
-  print (BuildConfig['props'])
-  templates = getTemplates()
-  # check if template exists
-  temps = [temp['name'] for temp in templates if temp['name'] == BuildConfig['name']]
-  if (len(temps) > 0):
-    # template exists: destroy
-    # print ('sudo iocage destroy {}'.format(BuildConfig['name']))
-    util.execNWait('sudo iocage destroy -f {}'.format(BuildConfig['name']))
-  print (temps)
+  jailminlib.destroyIfExist(BuildConfig['name'])
 
   # create jail
   util.execNWait('sudo iocage create -r {} -n {}'.format(BuildConfig['release'], BuildConfig['name']))
-  util.execNWait('sudo iocage set template=yes {}'.format(BuildConfig['name']))
-  for key in BuildConfig['props'].keys():
-    print ("{} = {}".format(key, BuildConfig['props'][key]))
-    util.execNWait('sudo iocage set {}={} {}'.format(key, getPropValue(BuildConfig['props'][key]), BuildConfig['name']))
+  jailminlib.setProps(BuildName, vars)
+  jailminlib.installPkgs(BuildConfig['name'], BuildConfig['pkgs'])
 
+  # start jail 
+  print ('Starting {}...'.format(BuildConfig['name']))
+  util.execNWait('sudo iocage start {}'.format(BuildConfig['name']))
+
+  # install pkgs
+  PkgStr = ' '.join(BuildConfig['pkgs'])
+  print ('Installing pkgs: {}'.format(PkgStr))
+  util.execNWait('sudo iocage exec {} "{}"'.format(BuildConfig['name'], 'pkg install -y {}'.format(PkgStr)))
+
+  # iterate through tasks
+  for task in BuildConfig['tasks']:
+    doTask(BuildConfig, task)
+
+  # util.execNWait('sudo iocage set template=yes {}'.format(BuildConfig['name']))
 
 def parseOptions():
-    args = sys.argv.copy()
-    args.pop(0)
+  args = sys.argv.copy()
+  args.pop(0)
 
-    while len(args) > 0:
-      param = args.pop(0)
-      if param == 'install':
-        print ('WARNING: You must be root or running-as root to install to /usr/local/bin')
-        shutil.copyfile(os.path.abspath(__file__), '/usr/local/bin/jailmin')
-        print ('jailmin installed')
-        continue
-      if param == 'setprop':
-        YamlFile = args.pop(0)
-        setProps(YamlFile)
-        continue
-      if param == 'build':
-        buildparam = args.pop(0)
-        print ('Building {}...'.format(buildparam))
-        buildTemplate(buildparam)
-        continue
-      else:
-        print ('ERROR: Unexpected param {}'.format(param))
-        sys.exit(2)
+  action = None
+  VarFile = None
+  TemplateFile = None
+  while len(args) > 0:
+    param = args.pop(0)
+    if param == 'install':
+      print ('WARNING: You must be root or running-as root to install to /usr/local/bin')
+      shutil.copyfile(os.path.abspath(__file__), '/usr/local/bin/jailmin')
+      print ('jailmin installed')
+      continue
+    if param == 'setprop':
+      TemplateFile = args.pop(0)
+      action = param
+      continue
+    if param == 'build':
+      TemplateFile = args.pop(0)
+      action = param
+      continue
+    if param == '-v':
+      VarFile = args.pop(0)
+      continue
+    else:
+      print ('ERROR: Unexpected param {}'.format(param))
+      sys.exit(2)
+
+  if (action == 'setprop'):
+    setProps(TemplateFile, VarFile)
+  elif (action == 'build'):
+    print ('Building {}...'.format(TemplateFile))
+    buildTemplate(TemplateFile, VarFile)
+
 
 parseOptions()
