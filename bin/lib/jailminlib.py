@@ -66,23 +66,49 @@ def getVars(VarFile = None):
   for key in DefaultVars['vars'].keys():
     if (key not in CustomVarsKeys):
       CustomVars['vars'][key] = DefaultVars['vars'][key]
+
   return CustomVars
 
-def getMergedTemplate(TemplateName, VarDict):
-  vars = VarDict['vars'] if ('vars' in VarDict.keys()) else None
-  
-  template = util.readYamlFile(TemplatePath + '/templates/' + TemplateName + '/template.yaml', vars)
+def getMergedTemplate(opt):
+  VarDict = opt['vars']
+  vars = VarDict['vars'] if ('vars' in VarDict.keys()) else {}
+  template = util.readYamlFile(TemplatePath + '/templates/' + opt['TemplateName'] + '/template.yaml', vars)
 
   # props in VarFile overrides template defaults
   if ('props' in VarDict.keys()):
     for key in VarDict['props'].keys():
       template['props'][key] = VarDict['props'][key]
+
+  # support command-line jail naming
+  if 'JailName' in opt:
+    template['name'] = opt['JailName']
+
+  # post-merge var processing
+  # iterate config selectively: light pass through tasks
+  DefaultVars = {
+    'JAILROOT': '/zroot/iocage/jails/{}/root/'.format(template['name']),
+    'TEMPLATEROOT': '{}/templates/{}/'.format(TemplatePath, template['name'])
+  }
+
+  if ('tasks' in template):
+    for task in template['tasks']:
+      for key in task.keys():
+        if (type(task[key]) is str):
+          for VarName in re.findall('\$\$[A-Za-z]+\$\$', task[key]):
+            task[key] = task[key].replace(VarName, DefaultVars[VarName[2:-2]])
+
+  # light template validation
+  MandatoryKeys = ['name','release']
+  for key in MandatoryKeys:
+    if key not in template:
+      raise Exception ('Missing key {} in template'.format(key))
+
   return template
 
-def setProps(YamlFile, vars):
-  BuildConfig = getMergedTemplate(YamlFile, vars)
-
+def setProps(BuildConfig):
   props = getJailProps(BuildConfig['name'])
+
+  # stop jail if running
   if (props != None and props['state'] == 'up'):
     print ('{} is running: stopping'.format(BuildConfig['name']))
     util.execNWait('iocage stop {}'.format(BuildConfig['name']))
@@ -102,4 +128,6 @@ def destroyIfExist(TemplateName):
   return False
 
 def installPkgs(JailName, PkgList):
-  print (PkgList)
+  PkgStr = ' '.join(PkgList)
+  print ('Installing pkgs: {}'.format(PkgStr))
+  util.execNWait('iocage exec {} "{}"'.format(BuildConfig['name'], 'pkg install -y {}'.format(PkgStr)))

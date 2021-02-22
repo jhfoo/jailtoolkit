@@ -9,12 +9,6 @@ import json
 import lib.util as util
 import lib.jailminlib as jailminlib
 
-# global vars
-AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-TemplatePath = '/usr/local/etc/jailmin/' if (AppBasePath.startswith('/usr/local/bin/')) else os.path.abspath('./')
-DebugPath = '{}/'.format(os.path.abspath('./debug'))
-WorkingPath = '{}/'.format(os.path.abspath('./temp'))
-
 print (os.path.abspath(__file__))
 
 def stringify4Template(value):
@@ -69,64 +63,53 @@ def doTask(BuildConfig, vars, task):
 
   
 
-def buildTemplate(TemplateName, VarFile = None):
-  vars = jailminlib.getVars(None if (VarFile == None) else TemplatePath + '/jails/' + VarFile + '/vars.yaml')
-  BuildConfig = jailminlib.getMergedTemplate(TemplateName, vars)
-  # post-merge var processing
-  # iterate config selectively: light pass through tasks
-  DefaultVars = {
-    'JAILROOT': '/zroot/iocage/jails/{}/root/'.format(BuildConfig['name']),
-    'TEMPLATEROOT': '{}/templates/{}/'.format(TemplatePath, TemplateName)
-  }
-
-  for task in BuildConfig['tasks']:
-    for key in task.keys():
-      if (type(task[key]) is str):
-        for VarName in re.findall('\$\$[A-Za-z]+\$\$', task[key]):
-          task[key] = task[key].replace(VarName, DefaultVars[VarName[2:-2]])
+def buildTemplate(opts):
+  BuildConfig = opts['BuildConfig']
+  vars = opts['vars']
 
   # all vars replaced at this point
-  if (DebugPath != ''):
-    OutFile = open('{}BuildConfig.json'.format(DebugPath),'w')
+  if (opts['DebugPath'] != None):
+    OutFile = open('{}BuildConfig.json'.format(opts['DebugPath']),'w')
     OutFile.write(json.dumps(BuildConfig, indent=2))
     OutFile.close()
 
-    OutFile = open('{}vars.json'.format(DebugPath),'w')
+    OutFile = open('{}vars.json'.format(opts['DebugPath']),'w')
     OutFile.write(json.dumps(vars, indent=2))
     OutFile.close()
 
-  # return
   # print (json.dumps(BuildConfig, indent=2))
 
   jailminlib.destroyIfExist(BuildConfig['name'])
 
   # create jail
   util.execNWait('iocage create -r {} -n {}'.format(BuildConfig['release'], BuildConfig['name']))
-  jailminlib.setProps(TemplateName, vars)
-  jailminlib.installPkgs(BuildConfig['name'], BuildConfig['pkgs'])
+  jailminlib.setProps(BuildConfig)
+  if 'pkgs' in BuildConfig:
+    # install pkgs
+    jailminlib.installPkgs(BuildConfig['name'], BuildConfig['pkgs'])
 
   # start jail 
   print ('Starting {}...'.format(BuildConfig['name']))
   util.execNWait('iocage start {}'.format(BuildConfig['name']))
 
-  # install pkgs
-  PkgStr = ' '.join(BuildConfig['pkgs'])
-  print ('Installing pkgs: {}'.format(PkgStr))
-  util.execNWait('iocage exec {} "{}"'.format(BuildConfig['name'], 'pkg install -y {}'.format(PkgStr)))
-
   # iterate through tasks
-  for task in BuildConfig['tasks']:
-    doTask(BuildConfig, vars, task)
+  if ('tasks' in BuildConfig):
+    for task in BuildConfig['tasks']:
+      doTask(BuildConfig, vars, task)
 
   # util.execNWait('iocage set template=yes {}'.format(BuildConfig['name']))
 
 def parseOptions():
+  AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
+  opts = {
+    'TemplatePath': '/usr/local/etc/jailmin/' if (AppBasePath.startswith('/usr/local/bin/')) else os.path.abspath('./'),
+    'DebugPath': '{}/'.format(os.path.abspath('./debug')),
+    'WorkingPath': '{}/'.format(os.path.abspath('./temp'))
+  }
+  # work on a copy of argv
   args = sys.argv.copy()
   args.pop(0)
 
-  action = None
-  VarFile = None
-  TemplateFile = None
   while len(args) > 0:
     param = args.pop(0)
     if param == 'install':
@@ -135,28 +118,40 @@ def parseOptions():
       print ('jailmin installed')
       continue
     if param == 'setprop':
-      TemplateFile = args.pop(0)
+      opts['cmd'] = param
+      opts['TemplateName'] = args.pop(0)
       action = param
       continue
     if param == 'build':
-      TemplateFile = args.pop(0)
+      opts['cmd'] = param
+      opts['TemplateName'] = args.pop(0)
       action = param
       continue
     if param == '-v':
-      VarFile = args.pop(0)
+      opts['VarFile'] = args.pop(0)
       continue
     if param == '-d':
-      DebugPath = args.pop(0)
+      opts['DebugPath'] = args.pop(0)
+      continue
+    if param == '-n':
+      opts['JailName'] = args.pop(0)
       continue
     else:
       print ('ERROR: Unexpected param {}'.format(param))
       sys.exit(2)
 
-  if (action == 'setprop'):
-    setProps(TemplateFile, VarFile)
-  elif (action == 'build'):
-    print ('Building {}...'.format(TemplateFile))
-    buildTemplate(TemplateFile, VarFile)
+  if 'cmd' in opts:
+    opts['vars'] = jailminlib.getVars(None if ('VarFile' not in opts) else opts['TemplatePath'] + '/jails/' + opts['VarFile'] + '/vars.yaml')
+    opts['BuildConfig'] = jailminlib.getMergedTemplate(opts)
+  return opts
 
+def execOptions(opts):
+  if (opts['cmd'] == 'setprop'):
+    setProps(opts['TemplateName'], opts['VarFile'])
+    return
+  if (opts['cmd'] == 'build'):
+    print ('Building {}...'.format(opts['TemplateName']))
+    buildTemplate(opts)
 
-parseOptions()
+opts = parseOptions()
+execOptions(opts)

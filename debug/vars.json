@@ -1,14 +1,8 @@
 {
   "vars": {
-    "jailname": "dhcp-golem",
-    "jailip": "vnet0|192.168.86.2/24",
-    "jailgw": "192.168.86.1",
-    "jailresolver": "search golem.kungfoo.info;nameserver 192.168.88.5",
-    "dnsmasq_port": 0,
-    "dnsmasq_domain": "golem.kungfoo.info",
-    "dnsmasq_dhcprange": "192.168.86.100,192.168.86.200,255.255.255.0,12h",
-    "dnsmasq_defaultroute": "192.168.86.1",
-    "dnsmasq_dns": "192.168.88.5",
     "none": "none"
+  },
+  "props": {
+    "allow_raw_sockets": true
   }
 }

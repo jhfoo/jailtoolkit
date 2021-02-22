@@ -1,45 +1,12 @@
 {
-  "name": "dhcp-golem",
+  "name": "dddtest",
   "release": "12.2-RELEASE",
   "props": {
     "vnet": true,
-    "ip4_addr": "vnet0|192.168.86.2/24",
-    "defaultrouter": "192.168.86.1",
-    "resolver": "search golem.kungfoo.info;nameserver 192.168.88.5",
-    "dhcp": false,
+    "dhcp": true,
     "bpf": true,
-    "boot": true,
     "template": false,
-    "allow_raw_sockets": true,
-    "vnet_default_interface": "jailvlan"
-  },
-  "pkgs": [
-    "zsh",
-    "consul",
-    "dnsmasq"
-  ],
-  "tasks": [
-    {
-      "name": "backup dnsmasq.conf",
-      "do": "copy",
-      "src": "/zroot/iocage/jails/dhcp-golem/root/usr/local/etc/dnsmasq.conf",
-      "dest": "/zroot/iocage/jails/dhcp-golem/root/usr/local/etc/dnsmasq.orig.conf"
-    },
-    {
-      "name": "copy dnsmasq.conf",
-      "do": "copy",
-      "ApplyVars": true,
-      "src": "/usr/home/jhfoo/jailtoolkit/templates/dhcp/dnsmasq.conf",
-      "dest": "/zroot/iocage/jails/dhcp-golem/root/usr/local/etc/dnsmasq.conf"
-    },
-    {
-      "name": "enable dnsmasq service auto start",
-      "do": "jailexec",
-      "cmd": "sysrc dnsmasq_enable=\"YES\""
-    },
-    {
-      "name": "restart jail",
-      "do": "jailrestart"
-    }
-  ]
+    "vnet_default_interface": "jailvlan",
+    "allow_raw_sockets": true
+  }
 }
