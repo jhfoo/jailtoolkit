@@ -24,8 +24,9 @@ tasks:
     do: copy
     ApplyVars: true
     src: {{TEMPLATEROOT}}dnsmasq.conf
-    dest: {{JAILROOT}}usr/local/etc/dnsmasq.orig
+    dest: {{JAILROOT}}usr/local/etc/dnsmasq.conf
   - name: enable dnsmasq service auto start
     do: jailexec
     cmd: sysrc dnsmasq_enable="YES"
-    
+  - name: restart jail
+    do: jailrestart

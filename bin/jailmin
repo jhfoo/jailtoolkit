@@ -9,46 +9,74 @@ import json
 import lib.util as util
 import lib.jailminlib as jailminlib
 
+# global vars
 AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 TemplatePath = '/usr/local/etc/jailmin/' if (AppBasePath.startswith('/usr/local/bin/')) else os.path.abspath('./')
+DebugPath = '{}/'.format(os.path.abspath('./debug'))
+WorkingPath = '{}/'.format(os.path.abspath('./temp'))
 
 print (os.path.abspath(__file__))
 
-def doTask(BuildConfig, task):
+def stringify4Template(value):
+  if (type(value) == bool):
+    return 1 if (value == True) else 0
+  if (type(value) == int):
+    return str(value)
+  if (type(value) == str):
+    return value
+
+  # else: unexpected type
+  raise Exception('Unhandled value type: {}'.format(type(value)))
+
+def taskCopy(BuildConfig, vars, task):
+  if ('ApplyVars' in task and task['ApplyVars'] == True):
+    # apply vars to text file
+    print (task['src'])
+    print (task['dest'])
+
+    InFile = open(task['src'],'r')
+    RawData = InFile.read()
+    InFile.close()
+
+    for key in vars['vars'].keys():
+        print ('Replacing key {}'.format(key))
+        RawData = RawData.replace('{{' + key + '}}', stringify4Template(vars['vars'][key]))
+
+    TempFile = WorkingPath + os.path.basename(task['dest'])
+    print ('dest basename: {}'.format(os.path.basename(task['dest'])))
+    OutFile = open(TempFile,'w')
+    OutFile.write(RawData)
+    OutFile.close()
+
+    util.execNWait('cp {} {}'.format(TempFile, task['dest']))
+  else:
+    # binary copy
+    util.execNWait('cp {} {}'.format(task['src'], task['dest']))
+
+def doTask(BuildConfig, vars, task):
   print ('TASK: {}'.format(task['name']))
   if (task['do'] == 'jailexec'):
-    util.execNWait('sudo iocage exec {} "{}"'.format(BuildConfig['name'], task['cmd']))
+    util.execNWait('iocage exec {} "{}"'.format(BuildConfig['name'], task['cmd']))
+    return
+
+  if (task['do'] == 'jailrestart'):
+    util.execNWait('iocage restart {}'.format(BuildConfig['name']))
     return
 
   if (task['do'] == 'copy'):
-    if (task['ApplyVars'] == True):
-      # apply vars to text file
-      print (task['src'])
-      print (task['dest'])
-      return
-      InFile = open(task['src'],'r')
-      RawData = InFile.read()
-      InFile.close()
-
-      for key in vars.keys():
-          RawData = RawData.replace('{{' + key + '}}', vars[key])
-
-      OutFile = open(task['dest'],'w')
-      OutFile.write(RawData)
-      OutFile.close()
-    else:
-      # binary copy
-      util.execNWait('sudo copy {} {}'.format(task['src'], task['dest']))
+    taskCopy(BuildConfig, vars, task)
     return
 
-def buildTemplate(BuildName, VarFile = None):
+  
+
+def buildTemplate(TemplateName, VarFile = None):
   vars = jailminlib.getVars(None if (VarFile == None) else TemplatePath + '/jails/' + VarFile + '/vars.yaml')
-  BuildConfig = jailminlib.getMergedTemplate(BuildName, vars)
+  BuildConfig = jailminlib.getMergedTemplate(TemplateName, vars)
   # post-merge var processing
   # iterate config selectively: light pass through tasks
   DefaultVars = {
-    'JAILROOT': '/zroot/iocage/jails/{}/'.format(BuildConfig['name']),
-    'TEMPLATEROOT': '{}/templates/{}/'.format(TemplatePath, BuildConfig['name'])
+    'JAILROOT': '/zroot/iocage/jails/{}/root/'.format(BuildConfig['name']),
+    'TEMPLATEROOT': '{}/templates/{}/'.format(TemplatePath, TemplateName)
   }
 
   for task in BuildConfig['tasks']:
@@ -57,29 +85,40 @@ def buildTemplate(BuildName, VarFile = None):
         for VarName in re.findall('\$\$[A-Za-z]+\$\$', task[key]):
           task[key] = task[key].replace(VarName, DefaultVars[VarName[2:-2]])
 
+  # all vars replaced at this point
+  if (DebugPath != ''):
+    OutFile = open('{}BuildConfig.json'.format(DebugPath),'w')
+    OutFile.write(json.dumps(BuildConfig, indent=2))
+    OutFile.close()
+
+    OutFile = open('{}vars.json'.format(DebugPath),'w')
+    OutFile.write(json.dumps(vars, indent=2))
+    OutFile.close()
+
+  # return
   # print (json.dumps(BuildConfig, indent=2))
 
   jailminlib.destroyIfExist(BuildConfig['name'])
 
   # create jail
-  util.execNWait('sudo iocage create -r {} -n {}'.format(BuildConfig['release'], BuildConfig['name']))
-  jailminlib.setProps(BuildName, vars)
+  util.execNWait('iocage create -r {} -n {}'.format(BuildConfig['release'], BuildConfig['name']))
+  jailminlib.setProps(TemplateName, vars)
   jailminlib.installPkgs(BuildConfig['name'], BuildConfig['pkgs'])
 
   # start jail 
   print ('Starting {}...'.format(BuildConfig['name']))
-  util.execNWait('sudo iocage start {}'.format(BuildConfig['name']))
+  util.execNWait('iocage start {}'.format(BuildConfig['name']))
 
   # install pkgs
   PkgStr = ' '.join(BuildConfig['pkgs'])
   print ('Installing pkgs: {}'.format(PkgStr))
-  util.execNWait('sudo iocage exec {} "{}"'.format(BuildConfig['name'], 'pkg install -y {}'.format(PkgStr)))
+  util.execNWait('iocage exec {} "{}"'.format(BuildConfig['name'], 'pkg install -y {}'.format(PkgStr)))
 
   # iterate through tasks
   for task in BuildConfig['tasks']:
-    doTask(BuildConfig, task)
+    doTask(BuildConfig, vars, task)
 
-  # util.execNWait('sudo iocage set template=yes {}'.format(BuildConfig['name']))
+  # util.execNWait('iocage set template=yes {}'.format(BuildConfig['name']))
 
 def parseOptions():
   args = sys.argv.copy()
@@ -105,6 +144,9 @@ def parseOptions():
       continue
     if param == '-v':
       VarFile = args.pop(0)
+      continue
+    if param == '-d':
+      DebugPath = args.pop(0)
       continue
     else:
       print ('ERROR: Unexpected param {}'.format(param))

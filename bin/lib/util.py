@@ -61,7 +61,7 @@ def readYamlFile(fname, vars=None):
     if (vars != None):
         print ('Substituting {} variables...'.format(len(vars.keys())))
         for key in vars.keys():
-            RawData = RawData.replace('{{' + key + '}}', vars[key])
+            RawData = RawData.replace('{{' + key + '}}', str(vars[key]))
 
     # replace unmapped {{varname}} into $$varname$$
     for key in re.findall('{{[A-Za-z]+}}', RawData):

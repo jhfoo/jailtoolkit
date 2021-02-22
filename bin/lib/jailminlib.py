@@ -10,7 +10,7 @@ def getTemplates(isTemplate = True):
   templates = []
   # switch between templates and jails
   TempString = '-t' if (isTemplate == True) else ''
-  ExecResult = util.execNWait('sudo iocage list {}'.format(TempString), isPrintRealtime = False)
+  ExecResult = util.execNWait('iocage list {}'.format(TempString), isPrintRealtime = False)
   if (ExecResult['ExitCode'] == 0):
     lines = ExecResult['output'].split('\n')
     if (len(lines) > 3):
@@ -39,7 +39,7 @@ def getPropValue(value):
   return '"{}"'.format(value)
 
 def getJailProps(JailName):
-  RawJailProps = util.execNWait('sudo iocage get all {}'.format(JailName), isPrintRealtime = False, isContinueOnError = True)
+  RawJailProps = util.execNWait('iocage get all {}'.format(JailName), isPrintRealtime = False, isContinueOnError = True)
   if (RawJailProps['ExitCode'] != 0):
     # jail does not exist
     return None
@@ -70,7 +70,7 @@ def getVars(VarFile = None):
 
 def getMergedTemplate(TemplateName, VarDict):
   vars = VarDict['vars'] if ('vars' in VarDict.keys()) else None
-
+  
   template = util.readYamlFile(TemplatePath + '/templates/' + TemplateName + '/template.yaml', vars)
 
   # props in VarFile overrides template defaults
@@ -85,17 +85,17 @@ def setProps(YamlFile, vars):
   props = getJailProps(BuildConfig['name'])
   if (props != None and props['state'] == 'up'):
     print ('{} is running: stopping'.format(BuildConfig['name']))
-    util.execNWait('sudo iocage stop {}'.format(BuildConfig['name']))
+    util.execNWait('iocage stop {}'.format(BuildConfig['name']))
 
   for key in BuildConfig['props'].keys():
     print ('{} = {}'.format(key, getPropValue(BuildConfig['props'][key])))
-    util.execNWait('sudo iocage set {}={} {}'.format(key, getPropValue(BuildConfig['props'][key]), BuildConfig['name']), isContinueOnError=True)
+    util.execNWait('iocage set {}={} {}'.format(key, getPropValue(BuildConfig['props'][key]), BuildConfig['name']), isContinueOnError=True)
 
 def destroyIfExist(TemplateName):
   templates = getTemplates(False)
   for temp in templates:
     if temp['name'] == TemplateName:
-      util.execNWait('sudo iocage destroy -f {}'.format(TemplateName))
+      util.execNWait('iocage destroy -f {}'.format(TemplateName))
       return True
   
   # nothing destroyed
