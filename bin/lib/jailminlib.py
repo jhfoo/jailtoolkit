@@ -1,5 +1,6 @@
 # core modules
 import os
+import re
 # custom modules
 import lib.util as util
 
@@ -69,28 +70,28 @@ def getVars(VarFile = None):
 
   return CustomVars
 
-def getMergedTemplate(opt):
-  VarDict = opt['vars']
+def getMergedTemplate(opts):
+  VarDict = opts['vars']
   vars = VarDict['vars'] if ('vars' in VarDict.keys()) else {}
-  template = util.readYamlFile(TemplatePath + '/templates/' + opt['TemplateName'] + '/template.yaml', vars)
+  template = util.readYamlFile(TemplatePath + '/templates/' + opts['TemplateName'] + '/template.yaml', vars)
 
   # props in VarFile overrides template defaults
-  if ('props' in VarDict.keys()):
+  if 'props' in VarDict.keys():
     for key in VarDict['props'].keys():
       template['props'][key] = VarDict['props'][key]
 
   # support command-line jail naming
-  if 'JailName' in opt:
-    template['name'] = opt['JailName']
+  if 'JailName' in opts:
+    template['name'] = opts['JailName']
 
   # post-merge var processing
   # iterate config selectively: light pass through tasks
   DefaultVars = {
     'JAILROOT': '/zroot/iocage/jails/{}/root/'.format(template['name']),
-    'TEMPLATEROOT': '{}/templates/{}/'.format(TemplatePath, template['name'])
+    'TEMPLATEROOT': '{}/templates/{}/'.format(TemplatePath, opts['TemplateName'])
   }
 
-  if ('tasks' in template):
+  if 'tasks' in template:
     for task in template['tasks']:
       for key in task.keys():
         if (type(task[key]) is str):
@@ -130,4 +131,4 @@ def destroyIfExist(TemplateName):
 def installPkgs(JailName, PkgList):
   PkgStr = ' '.join(PkgList)
   print ('Installing pkgs: {}'.format(PkgStr))
-  util.execNWait('iocage exec {} "{}"'.format(BuildConfig['name'], 'pkg install -y {}'.format(PkgStr)))
+  util.execNWait('iocage exec {} "{}"'.format(JailName, 'pkg install -y {}'.format(PkgStr)))

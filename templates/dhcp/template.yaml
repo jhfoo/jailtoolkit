@@ -20,7 +20,7 @@ tasks:
     do: copy
     src: {{JAILROOT}}usr/local/etc/dnsmasq.conf
     dest: {{JAILROOT}}usr/local/etc/dnsmasq.orig.conf
-  - name: copy dnsmasq.conf 
+  - name: copy dnsmasq.conf (template)
     do: copy
     ApplyVars: true
     src: {{TEMPLATEROOT}}dnsmasq.conf
