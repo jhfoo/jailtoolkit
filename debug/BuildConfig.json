@@ -1,23 +1,19 @@
 {
-  "name": "testdhcp",
+  "name": "hellojail",
   "release": "12.2-RELEASE",
-  "props": {
-    "vnet": true,
-    "dhcp": true,
-    "bpf": true,
-    "template": false,
-    "vnet_default_interface": "jailvlan",
-    "allow_raw_sockets": true
-  },
   "tasks": [
     {
-      "name": "install consul",
+      "name": "install nginx",
       "do": "runtemplate",
-      "template": "consul"
+      "template": "nginx"
     },
     {
       "name": "restart jail",
       "do": "jailrestart"
     }
-  ]
+  ],
+  "props": {
+    "ip4_addr": "192.168.88.58/24",
+    "allow_raw_sockets": true
+  }
 }

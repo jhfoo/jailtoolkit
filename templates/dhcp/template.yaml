@@ -1,5 +1,5 @@
 name: {{jailname}}
-release: 12.2-RELEASE
+release: {{jailrelease}}
 props:
   vnet: true
   ip4_addr: {{jailip}}
@@ -17,5 +17,8 @@ tasks:
   - name: install dnsmasq
     do: runtemplate
     template: dnsmasq
+  - name: install consul
+    do: runtemplate
+    template: consul
   - name: restart jail
     do: jailrestart

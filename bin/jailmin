@@ -5,53 +5,14 @@ import sys
 import shutil
 import re
 import json
-import copy
+import getpass
 # custom modules
 import lib.util as util
 import lib.jailminlib as jailminlib
+import lib.tasklib as tasklib
 
 print (os.path.abspath(__file__))
 
-def taskRunTemplate(opts, task):
-  TaskOpts = copy.deepcopy(opts)
-  TaskOpts['ValidateTemplate'] = False
-  TaskOpts['JailName'] = opts['BuildConfig']['name']
-  TaskOpts['TemplateName'] = task['template']
-  TaskOpts['vars']['vars']['TEMPLATEROOT'] = '{}/templates/{}/'.format(opts['TemplatePath'], TaskOpts['TemplateName'])
-  TaskOpts['BuildConfig'] = jailminlib.getMergedTemplate(TaskOpts)
-
-  if (opts['DebugPath'] != None):
-    OutFile = open('{}{}-BuildConfig.json'.format(TaskOpts['DebugPath'], task['template']),'w')
-    OutFile.write(json.dumps(TaskOpts, indent=2))
-    OutFile.close()
-
-  # install pkgs
-  BuildConfig = TaskOpts['BuildConfig']
-  if 'pkgs' in BuildConfig:
-    jailminlib.installPkgs(BuildConfig['name'], BuildConfig['pkgs'])
-
-  # iterate through tasks
-  if ('tasks' in BuildConfig):
-    doTasks(TaskOpts)
-
-def doTasks(opts):
-  BuildConfig = opts['BuildConfig']
-  vars = opts['vars']
-
-  for task in BuildConfig['tasks']:
-    print ('TASK: {}'.format(task['name']))
-    if (task['do'] == 'jailexec'):
-      util.execNWait('iocage exec {} "{}"'.format(BuildConfig['name'], task['cmd']))
-      continue
-    if (task['do'] == 'jailrestart'):
-      util.execNWait('iocage restart {}'.format(BuildConfig['name']))
-      continue
-    if (task['do'] == 'copy'):
-      jailminlib.taskCopy(vars['vars'], task, opts['WorkingPath'])
-      continue
-    if (task['do'] == 'runtemplate'):
-      taskRunTemplate(opts, task)
-      continue
 
 def buildTemplate(opts):
   BuildConfig = opts['BuildConfig']
@@ -85,7 +46,7 @@ def buildTemplate(opts):
 
   # iterate through tasks
   if ('tasks' in BuildConfig):
-    doTasks(opts)
+    tasklib.doTasks(opts)
 
   # util.execNWait('iocage set template=yes {}'.format(BuildConfig['name']))
 
@@ -122,6 +83,9 @@ def parseOptions():
       opts['TemplateName'] = args.pop(0)
       action = param
       continue
+    if param == '-i':
+      opts['Ip4Addr'] = args.pop(0)
+      continue
     if param == '-v':
       opts['VarFile'] = args.pop(0)
       continue
@@ -149,5 +113,11 @@ def execOptions(opts):
     print ('Building {}...'.format(opts['TemplateName']))
     buildTemplate(opts)
 
+def validateRoot():
+  if getpass.getuser() != 'root':
+    print ('INSUFFICIENT PRIVILEGES: jailmin requires root privileges to run some commmands (eg. iocage). Run jail as root or use sudo')
+    sys.exit(1)
+
+validateRoot()
 opts = parseOptions()
 execOptions(opts)

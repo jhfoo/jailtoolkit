@@ -6,7 +6,6 @@ import re
 import lib.util as util
 
 AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-TemplatePath = '/usr/local/etc/jailmin/' if (AppBasePath.startswith('/usr/local/bin/')) else os.path.abspath('./')
 
 def getTemplates(isTemplate = True):
   templates = []
@@ -77,24 +76,26 @@ def getVars(opts):
 def getMergedTemplate(opts):
   VarDict = opts['vars']
   vars = VarDict['vars'] if ('vars' in VarDict.keys()) else {}
-  template = util.readYamlFile(TemplatePath + '/templates/' + opts['TemplateName'] + '/template.yaml', vars)
-
-  # props in VarFile overrides template defaults
-  if 'props' in VarDict.keys():
-    if 'props' not in template:
-      template['props'] = {}
-    for key in VarDict['props'].keys():
-      template['props'][key] = VarDict['props'][key]
+  template = util.readYamlFile(opts['TemplatePath'] + '/templates/' + opts['TemplateName'] + '/template.yaml', vars)
+  if 'props' not in template:
+    template['props'] = {}
 
   # support command-line jail naming
   if 'JailName' in opts:
     template['name'] = opts['JailName']
+  if 'Ip4Addr' in opts:
+    template['props']['ip4_addr'] = opts['Ip4Addr']
+
+  # props in VarFile overrides template defaults
+  if 'props' in VarDict.keys():
+    for key in VarDict['props'].keys():
+      template['props'][key] = VarDict['props'][key]
 
   # post-merge var processing
   # iterate config selectively: light pass through tasks
   DefaultVars = {
     'JAILROOT': '/zroot/iocage/jails/{}/root/'.format(template['name']),
-    'TEMPLATEROOT': '{}/templates/{}/'.format(TemplatePath, opts['TemplateName']),
+    'TEMPLATEROOT': '{}/templates/{}/'.format(opts['TemplatePath'], opts['TemplateName']),
     'JAILNAME': template['name']
   }
 

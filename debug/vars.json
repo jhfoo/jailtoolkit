@@ -1,9 +1,9 @@
 {
   "vars": {
-    "none": "none",
-    "JAILROOT": "/zroot/iocage/jails/testdhcp/root/",
-    "TEMPLATEROOT": "/usr/home/jhfoo/jailtoolkit/templates/testdhcp/",
-    "JAILNAME": "testdhcp"
+    "jailrelease": "12.2-RELEASE",
+    "JAILROOT": "/zroot/iocage/jails/hellojail/root/",
+    "TEMPLATEROOT": "/usr/home/jhfoo/jailtoolkit/templates/basicnginx/",
+    "JAILNAME": "hellojail"
   },
   "props": {
     "allow_raw_sockets": true

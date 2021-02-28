@@ -1,4 +1,4 @@
 vars:
-  none: none
+  jailrelease: 12.2-RELEASE
 props:
   allow_raw_sockets: true

@@ -1,0 +1,6 @@
+pkgs:
+  - nginx
+tasks:
+  - name: enable consul service auto start
+    do: jailexec
+    cmd: sysrc nginx_enable="YES"
