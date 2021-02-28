@@ -1,0 +1,13 @@
+{
+  "datacenter": "plano",
+  "server": false,
+  "node_name": "{{JAILNAME}}",
+  "bind_addr": "{{ GetPrivateInterfaces | include \"network\" \"192.168.0.0/16\" | attr \"address\" }}",
+  "client_addr": "{{ GetPrivateInterfaces | include \"network\" \"192.168.0.0/16\" | attr \"address\" }}",
+  "log_level": "INFO",
+  "log_file": "/var/log/consul/",
+  "log_rotate_max_files": 3,
+  "log_rotate_bytes": 524288,
+  "log_rotate_duration": "24h",
+  "retry_join": ["consul.service.plano.consul"]
+}

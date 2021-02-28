@@ -6,3 +6,9 @@ props:
   bpf: true
   template: false
   vnet_default_interface: jailvlan
+tasks:
+  - name: install consul
+    do: runtemplate
+    template: consul
+  - name: restart jail
+    do: jailrestart

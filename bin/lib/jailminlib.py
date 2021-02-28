@@ -1,5 +1,6 @@
 # core modules
 import os
+import sys
 import re
 # custom modules
 import lib.util as util
@@ -52,10 +53,13 @@ def getJailProps(JailName):
       props[columns[0]] = columns[1]
   return props
 
-def getVars(VarFile = None):
+def getVars(opts):
   # load default vars
-  DefaultVars = util.readYamlFile(TemplatePath + '/jails/default/vars.yaml')
+  DefaultVars = util.readYamlFile(opts['TemplatePath'] + '/jails/default/vars.yaml')
 
+  VarFile = None 
+  if ('VarFile' in opts):
+    VarFile = opts['TemplatePath'] + '/jails/' + opts['VarFile'] + '/vars.yaml'
   if (VarFile == None):
     return DefaultVars
 
@@ -77,6 +81,8 @@ def getMergedTemplate(opts):
 
   # props in VarFile overrides template defaults
   if 'props' in VarDict.keys():
+    if 'props' not in template:
+      template['props'] = {}
     for key in VarDict['props'].keys():
       template['props'][key] = VarDict['props'][key]
 
@@ -88,21 +94,31 @@ def getMergedTemplate(opts):
   # iterate config selectively: light pass through tasks
   DefaultVars = {
     'JAILROOT': '/zroot/iocage/jails/{}/root/'.format(template['name']),
-    'TEMPLATEROOT': '{}/templates/{}/'.format(TemplatePath, opts['TemplateName'])
+    'TEMPLATEROOT': '{}/templates/{}/'.format(TemplatePath, opts['TemplateName']),
+    'JAILNAME': template['name']
   }
+
+  # update vars so nested templates can substitute early
+  for key in DefaultVars.keys():
+    vars[key] = DefaultVars[key]
 
   if 'tasks' in template:
     for task in template['tasks']:
       for key in task.keys():
         if (type(task[key]) is str):
           for VarName in re.findall('\$\$[A-Za-z]+\$\$', task[key]):
-            task[key] = task[key].replace(VarName, DefaultVars[VarName[2:-2]])
+            KeyInTask = VarName[2:-2]
+            if KeyInTask in DefaultVars:
+              task[key] = task[key].replace(VarName, DefaultVars[KeyInTask])
+            else:
+              raise Exception('Missing variable {}'.format(KeyInTask))
 
   # light template validation
-  MandatoryKeys = ['name','release']
-  for key in MandatoryKeys:
-    if key not in template:
-      raise Exception ('Missing key {} in template'.format(key))
+  if ('ValidateTemplate' not in opts or opts['ValidateTemplate'] == True):
+    MandatoryKeys = ['name','release']
+    for key in MandatoryKeys:
+      if key not in template:
+        raise Exception ('Missing key {} in template'.format(key))
 
   return template
 
@@ -132,3 +148,51 @@ def installPkgs(JailName, PkgList):
   PkgStr = ' '.join(PkgList)
   print ('Installing pkgs: {}'.format(PkgStr))
   util.execNWait('iocage exec {} "{}"'.format(JailName, 'pkg install -y {}'.format(PkgStr)))
+
+def stringify4Template(value):
+  if (type(value) == bool):
+    return 1 if (value == True) else 0
+  if (type(value) == int):
+    return str(value)
+  if (type(value) == str):
+    return value
+
+  # else: unexpected type
+  raise Exception('Unhandled value type: {}'.format(type(value)))
+
+def taskCopy(vars, task, WorkingPath):
+  if ('ApplyVars' in task and task['ApplyVars'] == True):
+    # apply vars to text file
+    print (task['src'])
+    print (task['dest'])
+
+    InFile = open(task['src'],'r')
+    RawData = InFile.read()
+    InFile.close()
+
+    # replace vars in copy template
+    for key in vars.keys():
+      print ('Replacing key {}'.format(key))
+      RawData = RawData.replace('{{' + key + '}}', stringify4Template(vars[key]))
+
+    # validate no unreplaced vars
+    isMissingVars = False
+    for key in re.findall('{{[A-Za-z]+}}', RawData):
+      VarName = key[2:-2]
+      isMissingVars = True
+      print ('ERROR: Variable {} not replaced'.format(VarName))
+    if isMissingVars:
+      sys.exit(1)
+
+    TempFile = WorkingPath + os.path.basename(task['dest'])
+    print ('dest basename: {}'.format(os.path.basename(task['dest'])))
+    OutFile = open(TempFile,'w')
+    OutFile.write(RawData)
+    OutFile.close()
+
+    util.execNWait('cp {} {}'.format(TempFile, task['dest']))
+    # housekeeping
+    os.remove(TempFile)
+  else:
+    # binary copy
+    util.execNWait('cp {} {}'.format(task['src'], task['dest']))

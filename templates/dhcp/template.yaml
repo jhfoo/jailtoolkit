@@ -13,20 +13,9 @@ props:
   vnet_default_interface: jailvlan
 pkgs:
   - zsh
-  - consul
-  - dnsmasq
 tasks:
-  - name: backup dnsmasq.conf
-    do: copy
-    src: {{JAILROOT}}usr/local/etc/dnsmasq.conf
-    dest: {{JAILROOT}}usr/local/etc/dnsmasq.orig.conf
-  - name: copy dnsmasq.conf (template)
-    do: copy
-    ApplyVars: true
-    src: {{TEMPLATEROOT}}dnsmasq.conf
-    dest: {{JAILROOT}}usr/local/etc/dnsmasq.conf
-  - name: enable dnsmasq service auto start
-    do: jailexec
-    cmd: sysrc dnsmasq_enable="YES"
+  - name: install dnsmasq
+    do: runtemplate
+    template: dnsmasq
   - name: restart jail
     do: jailrestart

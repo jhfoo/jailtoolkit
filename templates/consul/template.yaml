@@ -1,0 +1,20 @@
+pkgs:
+  - consul
+tasks:
+  - name: create config folder
+    do: jailexec
+    cmd: mkdir -p /usr/local/etc/consul.d
+  - name: copy core.json template
+    do: copy
+    ApplyVars: true
+    src: {{TEMPLATEROOT}}core.json
+    dest: {{JAILROOT}}usr/local/etc/consul.d/core.json
+  - name: create log folder
+    do: jailexec
+    cmd: mkdir -p /var/log/consul
+  - name: chown log folder
+    do: jailexec
+    cmd: chown consul /var/log/consul
+  - name: enable consul service auto start
+    do: jailexec
+    cmd: sysrc consul_enable="YES"
