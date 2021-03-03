@@ -1,5 +1,5 @@
 vars:
-  jailname: dhcp-golem
+  jailname: dhcp-golemm
   jailip: vnet0|192.168.86.2/24
   jailgw: 192.168.86.1
   jailresolver: search golem.kungfoo.info;nameserver 192.168.88.5
