@@ -2,6 +2,9 @@
 import os
 import sys
 import re
+import json
+# public modules
+import yaml
 # custom modules
 import lib.util as util
 
@@ -52,18 +55,31 @@ def getJailProps(JailName):
       props[columns[0]] = columns[1]
   return props
 
+def smartGetFile(AppConfig, DynParam, PathFormat, LocalPrefix):
+  """Either get file locally or from GitHub"""
+  if DynParam.startswith('github'):
+    FinalPath = PathFormat.format(DynParam[7:])
+    print ('FinalPath: GITHUB {}'.format(FinalPath))
+    return util.getFromGit(AppConfig, FinalPath)
+
+  # else
+  FinalPath = LocalPrefix + PathFormat.format(DynParam)
+  print ('FinalPath: LOCAL {}'.format(FinalPath))
+  return util.readTextFile(FinalPath)
+
 def getVars(opts):
   # load default vars
-  DefaultVars = util.readYamlFile(opts['TemplatePath'] + '/jails/default/vars.yaml')
-
-  VarFile = None 
-  if ('VarFile' in opts):
-    VarFile = opts['TemplatePath'] + '/jails/' + opts['VarFile'] + '/vars.yaml'
-  if (VarFile == None):
+  DefaultVars = {}
+  if 'DefaultVars' not in opts['AppConfig']:
+    # default handler when DefaultVars not specified
+    DefaultVars = util.readYamlFile(opts['TemplatePath'] + '/jails/default/vars.yaml')
+  else:
+    DefaultVars = util.parseYaml(smartGetFile(opts['AppConfig'], opts['AppConfig']['DefaultVars'], '/jails/default/vars.yaml', opts['TemplatePath']))
+  
+  if 'VarFile' not in opts:
     return DefaultVars
 
-  # load custom vars
-  CustomVars = util.readYamlFile(VarFile)
+  CustomVars = util.parseYaml(smartGetFile(opts['AppConfig'], opts['VarFile'], '/jails/{}/vars.yaml', opts['TemplatePath']))
 
   # custom vars override defaults
   CustomVarsKeys = CustomVars['vars'].keys()
@@ -71,12 +87,15 @@ def getVars(opts):
     if (key not in CustomVarsKeys):
       CustomVars['vars'][key] = DefaultVars['vars'][key]
 
+  print (json.dumps(CustomVars, indent=2))
   return CustomVars
 
 def getMergedTemplate(opts):
   VarDict = opts['vars']
   vars = VarDict['vars'] if ('vars' in VarDict.keys()) else {}
-  template = util.readYamlFile(opts['TemplatePath'] + '/templates/' + opts['TemplateName'] + '/template.yaml', vars)
+  TextFile = smartGetFile(opts['AppConfig'], opts['TemplateName'], '/templates/{}/template.yaml', opts['TemplatePath'])
+  template = util.parseYaml(TextFile, vars)
+  # template = util.readYamlFile(opts['TemplatePath'] + '/templates/' + opts['TemplateName'] + '/template.yaml', vars)
   if 'props' not in template:
     template['props'] = {}
 

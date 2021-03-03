@@ -1,0 +1,4 @@
+github:
+  token: YourTokenHere 
+  RepoUrl: https://github.com/jhfoo/jailmin-templates
+DefaultVars: github
