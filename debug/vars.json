@@ -1,7 +1,7 @@
 {
   "vars": {
-    "jailname": "dhcp-golemm",
-    "jailip": "vnet0|192.168.86.3/24",
+    "jailname": "dhcp-golem",
+    "jailip": "vnet0|192.168.86.2/24",
     "jailgw": "192.168.86.1",
     "jailresolver": "search golem.kungfoo.info;nameserver 192.168.88.5",
     "dnsmasq_port": 0,
@@ -10,8 +10,8 @@
     "dnsmasq_defaultroute": "192.168.86.1",
     "dnsmasq_dns": "192.168.88.5",
     "jailrelease": "12.2-RELEASE",
-    "JAILROOT": "/zroot/iocage/jails/dhcp-golemm/root/",
+    "JAILROOT": "/zroot/iocage/jails/dhcp-golem/root/",
     "TEMPLATEROOT": "/usr/home/jhfoo/jailtoolkit/templates/github:dhcp/",
-    "JAILNAME": "dhcp-golemm"
+    "JAILNAME": "dhcp-golem"
   }
 }

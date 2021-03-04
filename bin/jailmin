@@ -52,16 +52,17 @@ def buildTemplate(opts):
 
   # util.execNWait('iocage set template=yes {}'.format(BuildConfig['name']))
 
-def readConfig():
+def readConfig(AltAppConfigFile):
   FILE_APPCONFIG = '/usr/local/etc/jailmin.yaml'
 
-  if os.path.exists(FILE_APPCONFIG):
-    InFile = open(FILE_APPCONFIG)
+  AppConfigFile = FILE_APPCONFIG if AltAppConfigFile is None else AltAppConfigFile
+  if os.path.exists(AppConfigFile):
+    InFile = open(AppConfigFile)
     config = yaml.load(InFile.read(), Loader=yaml.FullLoader)
     InFile.close()
     return config
   # else
-  return {}
+  raise Exception('Missing app config: {}'.AppConfigFile)
 
 def testGitGet(opts, fname):
   """Confirm code block necessary to GET raw GitHub private repo"""
@@ -88,8 +89,7 @@ def parseOptions():
   opts = {
     'TemplatePath': '/usr/local/etc/jailmin/' if (AppBasePath.startswith('/usr/local/bin/')) else os.path.abspath('./'),
     'DebugPath': '{}/'.format(os.path.abspath('./debug')),
-    'WorkingPath': '{}/'.format(os.path.abspath('./temp')),
-    'AppConfig': readConfig()
+    'WorkingPath': '{}/'.format(os.path.abspath('./temp'))
   }
   # work on a copy of argv
   args = sys.argv.copy()
@@ -116,6 +116,9 @@ def parseOptions():
     if param == '-i':
       opts['Ip4Addr'] = args.pop(0)
       continue
+    if param == '-c':
+      opts['AppFile'] = args.pop(0)
+      continue
     if param == '-v':
       opts['VarFile'] = args.pop(0)
       continue
@@ -128,6 +131,8 @@ def parseOptions():
     else:
       print ('ERROR: Unexpected param {}'.format(param))
       sys.exit(2)
+
+  opts['AppConfig'] = readConfig(opts['AppFile'] if 'AppFile' in opts else None)
 
   if 'cmd' in opts and opts['cmd'] != 'test':
     opts['vars'] = jailminlib.getVars(opts)

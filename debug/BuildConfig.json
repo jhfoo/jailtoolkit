@@ -1,9 +1,9 @@
 {
-  "name": "dhcp-golemm",
+  "name": "dhcp-golem",
   "release": "12.2-RELEASE",
   "props": {
     "vnet": true,
-    "ip4_addr": "vnet0|192.168.86.3/24",
+    "ip4_addr": "vnet0|192.168.86.2/24",
     "defaultrouter": "192.168.86.1",
     "resolver": "search golem.kungfoo.info;nameserver 192.168.88.5",
     "dhcp": false,

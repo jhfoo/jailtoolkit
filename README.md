@@ -67,3 +67,4 @@ Create a simple jail with static ip and Nginx
 - -v: variable folder
 - -i: ip4 address
 - -n: jail name
+- -c: app config file

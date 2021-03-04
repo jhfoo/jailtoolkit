@@ -9,6 +9,6 @@ props:
 tasks:
   - name: install consul
     do: runtemplate
-    template: consul
+    template: github:consul
   - name: restart jail
     do: jailrestart
