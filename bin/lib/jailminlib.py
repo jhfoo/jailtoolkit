@@ -1,30 +1,29 @@
 # core modules
 import os
-import sys
 import re
 import json
 # public modules
-import yaml
 # custom modules
 import lib.util as util
 
 AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 
 def getTemplates(isTemplate = True):
+  """Convert template list as returned from iocage as dictionary"""
   templates = []
   # switch between templates and jails
-  TempString = '-t' if (isTemplate == True) else ''
+  TempString = '-t' if isTemplate else ''
   ExecResult = util.execNWait('iocage list {}'.format(TempString), isPrintRealtime = False)
-  if (ExecResult['ExitCode'] == 0):
+  if ExecResult['ExitCode'] == 0:
     lines = ExecResult['output'].split('\n')
-    if (len(lines) > 3):
+    if len(lines) > 3:
       lines.pop(0)
       lines.pop(0)
       lines.pop(0)
 
     for line in lines:
       columns = line.split('|')
-      if (len(columns) == 7):
+      if len(columns) == 7:
         fields = {
           'jid': columns[1].strip(),
           'name': columns[2].strip(),
@@ -37,21 +36,23 @@ def getTemplates(isTemplate = True):
   return templates
 
 def getPropValue(value):
-  if (type(value) is bool):
-    return 1 if (value == True) else 0
+  """Return value in a type recognized by iocage"""
+  if isinstance(value, bool):
+    return 1 if value else 0
   # if (type(value) is str):
   return '"{}"'.format(value)
 
 def getJailProps(JailName):
+  """Get jail properties as returned by iocage"""
   RawJailProps = util.execNWait('iocage get all {}'.format(JailName), isPrintRealtime = False, isContinueOnError = True)
-  if (RawJailProps['ExitCode'] != 0):
+  if RawJailProps['ExitCode'] != 0:
     # jail does not exist
     return None
 
   props = {}
   for line in RawJailProps['output'].split('\n'):
     columns = line.split(':')
-    if (len(columns) > 1):
+    if len(columns) > 1:
       props[columns[0]] = columns[1]
   return props
 
@@ -68,6 +69,7 @@ def smartGetFile(AppConfig, DynParam, PathFormat, LocalPrefix):
   return util.readTextFile(FinalPath)
 
 def getVars(opts):
+  """Merge default and user-defined variable files into a single dictionary"""
   # load default vars
   DefaultVars = {}
   if 'DefaultVars' not in opts['AppConfig']:
@@ -75,7 +77,7 @@ def getVars(opts):
     DefaultVars = util.readYamlFile(opts['TemplatePath'] + '/jails/default/vars.yaml')
   else:
     DefaultVars = util.parseYaml(smartGetFile(opts['AppConfig'], opts['AppConfig']['DefaultVars'], '/jails/default/vars.yaml', opts['TemplatePath']))
-  
+
   if 'VarFile' not in opts:
     return DefaultVars
 
@@ -84,17 +86,18 @@ def getVars(opts):
   # custom vars override defaults
   CustomVarsKeys = CustomVars['vars'].keys()
   for key in DefaultVars['vars'].keys():
-    if (key not in CustomVarsKeys):
+    if key not in CustomVarsKeys:
       CustomVars['vars'][key] = DefaultVars['vars'][key]
 
   print (json.dumps(CustomVars, indent=2))
   return CustomVars
 
 def getMergedTemplate(opts):
+  """Load jailmin template and apply variables"""
   VarDict = opts['vars']
-  vars = VarDict['vars'] if ('vars' in VarDict.keys()) else {}
+  TemplateVars = VarDict['vars'] if ('vars' in VarDict.keys()) else {}
   TextFile = smartGetFile(opts['AppConfig'], opts['TemplateName'], '/templates/{}/template.yaml', opts['TemplatePath'])
-  template = util.parseYaml(TextFile, vars)
+  template = util.parseYaml(TextFile, TemplateVars)
   # template = util.readYamlFile(opts['TemplatePath'] + '/templates/' + opts['TemplateName'] + '/template.yaml', vars)
   if 'props' not in template:
     template['props'] = {}
@@ -119,14 +122,14 @@ def getMergedTemplate(opts):
   }
 
   # update vars so nested templates can substitute early
-  for key in DefaultVars.keys():
-    vars[key] = DefaultVars[key]
+  for key in DefaultVars:
+    TemplateVars[key] = DefaultVars[key]
 
   if 'tasks' in template:
     for task in template['tasks']:
-      for key in task.keys():
-        if (type(task[key]) is str):
-          for VarName in re.findall('\$\$[A-Za-z]+\$\$', task[key]):
+      for key in task:
+        if type(task[key]) is str:
+          for VarName in re.findall(r'$$[A-Za-z]+$$', task[key]):
             KeyInTask = VarName[2:-2]
             if KeyInTask in DefaultVars:
               task[key] = task[key].replace(VarName, DefaultVars[KeyInTask])
@@ -146,7 +149,7 @@ def setProps(BuildConfig):
   props = getJailProps(BuildConfig['name'])
 
   # stop jail if running
-  if (props != None and props['state'] == 'up'):
+  if (props is not None and props['state'] == 'up'):
     print ('{} is running: stopping'.format(BuildConfig['name']))
     util.execNWait('iocage stop {}'.format(BuildConfig['name']))
 
@@ -160,7 +163,7 @@ def destroyIfExist(TemplateName):
     if temp['name'] == TemplateName:
       util.execNWait('iocage destroy -f {}'.format(TemplateName))
       return True
-  
+
   # nothing destroyed
   return False
 
@@ -170,49 +173,12 @@ def installPkgs(JailName, PkgList):
   util.execNWait('iocage exec {} "{}"'.format(JailName, 'pkg install -y {}'.format(PkgStr)))
 
 def stringify4Template(value):
-  if (type(value) == bool):
-    return 1 if (value == True) else 0
-  if (type(value) == int):
+  if isinstance(value, bool):
+    return 1 if value else 0
+  if isinstance(value, int):
     return str(value)
-  if (type(value) == str):
+  if isinstance(value, str):
     return value
 
   # else: unexpected type
   raise Exception('Unhandled value type: {}'.format(type(value)))
-
-def taskCopy(vars, task, WorkingPath):
-  if ('ApplyVars' in task and task['ApplyVars'] == True):
-    # apply vars to text file
-    print (task['src'])
-    print (task['dest'])
-
-    InFile = open(task['src'],'r')
-    RawData = InFile.read()
-    InFile.close()
-
-    # replace vars in copy template
-    for key in vars.keys():
-      print ('Replacing key {}'.format(key))
-      RawData = RawData.replace('{{' + key + '}}', stringify4Template(vars[key]))
-
-    # validate no unreplaced vars
-    isMissingVars = False
-    for key in re.findall('{{[A-Za-z]+}}', RawData):
-      VarName = key[2:-2]
-      isMissingVars = True
-      print ('ERROR: Variable {} not replaced'.format(VarName))
-    if isMissingVars:
-      sys.exit(1)
-
-    TempFile = WorkingPath + os.path.basename(task['dest'])
-    print ('dest basename: {}'.format(os.path.basename(task['dest'])))
-    OutFile = open(TempFile,'w')
-    OutFile.write(RawData)
-    OutFile.close()
-
-    util.execNWait('cp {} {}'.format(TempFile, task['dest']))
-    # housekeeping
-    os.remove(TempFile)
-  else:
-    # binary copy
-    util.execNWait('cp {} {}'.format(task['src'], task['dest']))

@@ -19,16 +19,18 @@ def stringify4Template(value):
   # else: unexpected type
   raise Exception('Unhandled value type: {}'.format(type(value)))
 
-def taskCopy(vars, task, WorkingPath):
+def taskCopy(opts, task, WorkingPath):
   if ('ApplyVars' in task and task['ApplyVars'] == True):
     # apply vars to text file
     print (task['src'])
     print (task['dest'])
 
-    InFile = open(task['src'],'r')
-    RawData = InFile.read()
-    InFile.close()
+    RawData = jailminlib.smartGetFile(opts['AppConfig'], task['src'], '{}', '')
+    # InFile = open(task['src'],'r')
+    # RawData = InFile.read()
+    # InFile.close()
 
+    vars = opts['vars']['vars']
     # replace vars in copy template
     for key in vars.keys():
       print ('Replacing key {}'.format(key))
@@ -56,12 +58,19 @@ def taskCopy(vars, task, WorkingPath):
     # binary copy
     util.execNWait('cp {} {}'.format(task['src'], task['dest']))
 
+def smartTemplateRoot(TemplatePath, TemplateName, PathFormat):
+  if TemplateName.startswith('github'):
+    return PathFormat.format('github:', TemplateName[7:])
+  # else
+  return PathFormat.format(TemplatePath, TemplateName)
+
 def taskRunTemplate(opts, task):
   TaskOpts = copy.deepcopy(opts)
   TaskOpts['ValidateTemplate'] = False
   TaskOpts['JailName'] = opts['BuildConfig']['name']
   TaskOpts['TemplateName'] = task['template']
-  TaskOpts['vars']['vars']['TEMPLATEROOT'] = '{}/templates/{}/'.format(opts['TemplatePath'], TaskOpts['TemplateName'])
+  TaskOpts['vars']['vars']['TEMPLATEROOT'] = smartTemplateRoot(opts['TemplatePath'], TaskOpts['TemplateName'], '{}/templates/{}/')
+  # TaskOpts['vars']['vars']['TEMPLATEROOT'] = '{}/templates/{}/'.format(opts['TemplatePath'], TaskOpts['TemplateName'])
   TaskOpts['BuildConfig'] = jailminlib.getMergedTemplate(TaskOpts)
 
   if (opts['DebugPath'] != None):
@@ -91,7 +100,7 @@ def doTasks(opts):
       util.execNWait('iocage restart {}'.format(BuildConfig['name']))
       continue
     if (task['do'] == 'copy'):
-      taskCopy(vars['vars'], task, opts['WorkingPath'])
+      taskCopy(opts, task, opts['WorkingPath'])
       continue
     if (task['do'] == 'runtemplate'):
       taskRunTemplate(opts, task)

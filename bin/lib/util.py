@@ -14,8 +14,10 @@ def getFromGit(AppConfig, fname):
     'Accept': 'application/vnd.github.v3.raw'
   }
   url = 'https://raw.githubusercontent.com/{}/{}{}'.format(AppConfig['github']['RepoUrl'], AppConfig['github']['RepoBranch'], fname)
+  print ('GET {}'.format(url))
   res = requests.get(url, headers=headers)
   if res.status_code == 200:
+    print ('OK')
     return res.text
   else:
     raise Exception('Unable to retrieve: {}'.format(url))

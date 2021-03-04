@@ -53,6 +53,7 @@ def buildTemplate(opts):
   # util.execNWait('iocage set template=yes {}'.format(BuildConfig['name']))
 
 def readConfig(AltAppConfigFile):
+  """Read/ parse jailmin config"""
   FILE_APPCONFIG = '/usr/local/etc/jailmin.yaml'
 
   AppConfigFile = FILE_APPCONFIG if AltAppConfigFile is None else AltAppConfigFile
@@ -62,7 +63,7 @@ def readConfig(AltAppConfigFile):
     InFile.close()
     return config
   # else
-  raise Exception('Missing app config: {}'.AppConfigFile)
+  raise Exception('Missing app config: {}'.format(AppConfigFile))
 
 def testGitGet(opts, fname):
   """Confirm code block necessary to GET raw GitHub private repo"""
