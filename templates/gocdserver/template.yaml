@@ -1,0 +1,24 @@
+name: {{jailname}}
+release: {{jailrelease}}
+props:
+  vnet: true
+  dhcp: true
+  bpf: true
+  template: false
+  vnet_default_interface: jailvlan
+pkgs:
+  - openjdk14
+  - wget
+  - git
+tasks:
+  - name: install consul
+    do: runtemplate
+    template: github:consul
+  - name: mounts for jdk 1 of 2
+    do: jailexec
+    cmd: mount -t fdescfs fdesc /dev/fd
+  - name: mounts for jdk 2 of 2
+    do: jailexec
+    cmd: mount -t procfs proc /proc
+  - name: restart jail
+    do: jailrestart

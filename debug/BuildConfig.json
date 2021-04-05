@@ -1,31 +1,34 @@
 {
-  "name": "dhcp-golem",
+  "name": "gca1",
   "release": "12.2-RELEASE",
   "props": {
     "vnet": true,
-    "ip4_addr": "vnet0|192.168.86.2/24",
-    "defaultrouter": "192.168.86.1",
-    "resolver": "search golem.kungfoo.info;nameserver 192.168.88.5",
-    "dhcp": false,
+    "dhcp": true,
     "bpf": true,
-    "boot": true,
     "template": false,
-    "allow_raw_sockets": true,
-    "vnet_default_interface": "jailvlan"
+    "vnet_default_interface": "jailvlan",
+    "allow_raw_sockets": true
   },
   "pkgs": [
-    "zsh"
+    "openjdk14",
+    "wget",
+    "git"
   ],
   "tasks": [
     {
-      "name": "install dnsmasq",
-      "do": "runtemplate",
-      "template": "dnsmasq"
-    },
-    {
       "name": "install consul",
       "do": "runtemplate",
-      "template": "consul"
+      "template": "github:consul"
+    },
+    {
+      "name": "mounts for jdk 1 of 2",
+      "do": "jailexec",
+      "cmd": "mount -t fdescfs fdesc /dev/fd"
+    },
+    {
+      "name": "mounts for jdk 2 of 2",
+      "do": "jailexec",
+      "cmd": "mount -t procfs proc /proc"
     },
     {
       "name": "restart jail",

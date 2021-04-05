@@ -1,0 +1,16 @@
+name: {{jailname}}
+release: {{jailrelease}}
+props:
+  vnet: true
+  dhcp: true
+  bpf: true
+  template: false
+  vnet_default_interface: jailvlan
+pkgs:
+  - git
+tasks:
+  - name: install consul
+    do: runtemplate
+    template: github:consul
+  - name: restart jail
+    do: jailrestart
