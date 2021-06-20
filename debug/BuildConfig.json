@@ -1,6 +1,6 @@
 {
-  "name": "gca1",
-  "release": "12.2-RELEASE",
+  "name": "test2",
+  "release": "13.0-RELEASE",
   "props": {
     "vnet": true,
     "dhcp": true,
@@ -10,8 +10,6 @@
     "allow_raw_sockets": true
   },
   "pkgs": [
-    "openjdk14",
-    "wget",
     "git"
   ],
   "tasks": [
@@ -19,16 +17,6 @@
       "name": "install consul",
       "do": "runtemplate",
       "template": "github:consul"
-    },
-    {
-      "name": "mounts for jdk 1 of 2",
-      "do": "jailexec",
-      "cmd": "mount -t fdescfs fdesc /dev/fd"
-    },
-    {
-      "name": "mounts for jdk 2 of 2",
-      "do": "jailexec",
-      "cmd": "mount -t procfs proc /proc"
     },
     {
       "name": "restart jail",

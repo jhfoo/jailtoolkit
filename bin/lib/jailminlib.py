@@ -5,6 +5,7 @@ import json
 # public modules
 # custom modules
 import lib.util as util
+import lib.constant as constant
 
 AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 
@@ -27,7 +28,7 @@ def getTemplates(isTemplate = True):
         fields = {
           'jid': columns[1].strip(),
           'name': columns[2].strip(),
-          'state': columns[3].strip(),
+          constant.JAILINFO_STATE: columns[3].strip(),
           'release': columns[4].strip(),
           'address': columns[5].strip(),
         }
@@ -60,12 +61,12 @@ def smartGetFile(AppConfig, DynParam, PathFormat, LocalPrefix):
   """Either get file locally or from GitHub"""
   if DynParam.startswith('github'):
     FinalPath = PathFormat.format(DynParam[7:])
-    print ('FinalPath: GITHUB {}'.format(FinalPath))
+    print ('smartGetFile: GITHUB {}'.format(FinalPath))
     return util.getFromGit(AppConfig, FinalPath)
 
   # else
   FinalPath = LocalPrefix + PathFormat.format(DynParam)
-  print ('FinalPath: LOCAL {}'.format(FinalPath))
+  print ('smartGetFile: LOCAL {}'.format(FinalPath))
   return util.readTextFile(FinalPath)
 
 def getVars(opts):
@@ -74,9 +75,16 @@ def getVars(opts):
   DefaultVars = {}
   if 'DefaultVars' not in opts['AppConfig']:
     # default handler when DefaultVars not specified
-    DefaultVars = util.readYamlFile(opts['TemplatePath'] + '/jails/default/vars.yaml')
+    VarFile = opts['TemplatePath'] + '/jails/default/vars.yaml'
+    print ('DEBUG: Loading default varfile {}'.format(VarFile))
+    DefaultVars = util.readYamlFile(VarFile)
   else:
-    DefaultVars = util.parseYaml(smartGetFile(opts['AppConfig'], opts['AppConfig']['DefaultVars'], '/jails/default/vars.yaml', opts['TemplatePath']))
+    DefaultVars = util.parseYaml(smartGetFile(
+      AppConfig = opts['AppConfig'], 
+      DynParam = opts['AppConfig']['DefaultVars'], 
+      PathFormat = '/jails/default/vars.yaml', 
+      LocalPrefix = opts['TemplatePath']
+    ))
 
   if 'VarFile' not in opts:
     return DefaultVars
@@ -138,10 +146,10 @@ def getMergedTemplate(opts):
 
   # light template validation
   if ('ValidateTemplate' not in opts or opts['ValidateTemplate'] == True):
-    MandatoryKeys = ['name','release']
+    MandatoryKeys = [constant.KEY_NAME]
     for key in MandatoryKeys:
       if key not in template:
-        raise Exception ('Missing key {} in template'.format(key))
+        raise Exception ('Missing key \'{}\' in template'.format(key))
 
   return template
 
@@ -156,6 +164,15 @@ def setProps(BuildConfig):
   for key in BuildConfig['props'].keys():
     print ('{} = {}'.format(key, getPropValue(BuildConfig['props'][key])))
     util.execNWait('iocage set {}={} {}'.format(key, getPropValue(BuildConfig['props'][key]), BuildConfig['name']), isContinueOnError=True)
+
+def getJailByName(JailName):
+  jails = getTemplates(False)
+  for jail in jails:
+    if jail['name'] == JailName:
+      return jail
+
+  # iteration complete: no match 
+  return None
 
 def destroyIfExist(TemplateName):
   templates = getTemplates(False)

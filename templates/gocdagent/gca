@@ -15,23 +15,23 @@
 
 . /etc/rc.subr
 
-name=gcs
-rcvar=gcs_enable
+name=gca
+rcvar=gca_enable
 
 load_rc_config $name
 
 #: ${consul_enable:="NO"}
 
-start_precmd="gcs_start_precmd"
+start_precmd="gca_start_precmd"
 extra_commands="reload"
 pidfile="/var/run/gocdserver.pid"
-procname="/root/go-server-21.2.0/bin/go-server"
+procname="/root/go-agent-21.2.0/bin/go-agent"
 command="/usr/sbin/daemon"
 PATH=${PATH}:/usr/local/bin
 export PATH
-command_args="-o /root/gcs.log -t ${name} -p ${pidfile} /usr/bin/env /root/go-server-21.2.0/bin/go-server console"
+command_args="-o /root/gca.log -t ${name} -p ${pidfile} /usr/bin/env /root/go-agent-21.2.0/bin/go-agent console"
 
-gcs_start_precmd()
+gca_start_precmd()
 {
 }
 

@@ -1,9 +1,9 @@
 {
   "vars": {
-    "jailrelease": "12.2-RELEASE",
-    "JAILROOT": "/zroot/iocage/jails/gca1/root/",
-    "TEMPLATEROOT": "/usr/home/jhfoo/jailtoolkit/templates/gocdagent/",
-    "JAILNAME": "gca1"
+    "jailrelease": "13.0-RELEASE",
+    "JAILROOT": "/zroot/iocage/jails/test2/root/",
+    "TEMPLATEROOT": "/usr/home/jhfoo/jailtoolkit/templates/std/",
+    "JAILNAME": "test2"
   },
   "props": {
     "allow_raw_sockets": true

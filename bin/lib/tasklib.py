@@ -7,6 +7,7 @@ import json
 # custom modules
 import lib.util as util
 import lib.jailminlib as jailminlib
+import lib.constant as c
 
 def stringify4Template(value):
   if (type(value) == bool):
@@ -92,7 +93,7 @@ def doTasks(opts):
   vars = opts['vars']
 
   for task in BuildConfig['tasks']:
-    print ('TASK: {}'.format(task['name']))
+    print ('TASK: {}'.format(task[c.KEY_NAME]))
     if (task['do'] == 'jailexec'):
       util.execNWait('iocage exec {} "{}"'.format(BuildConfig['name'], task['cmd']))
       continue

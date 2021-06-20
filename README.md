@@ -47,6 +47,14 @@ Create a simple jail with static ip and Nginx
 ./bin/jailmin build basicnginx -n hellojail -i 192.168.0.58/24
 ~~~
 
+Create a simple jail with static ip from config in GitHub
+~~~ sh
+# pwd: jailtoolkit/
+# jail hostname = hellojail
+# TODO: set ip below to a valid address
+./bin/jailmin build github:basic -n hellojail -i 192.168.0.58/24
+~~~
+
 ## Templates
 1. Templates are YAML files describing how a jail is to be set up
 2. Templates can be nested (eg. load sidecars such as Consul or install services such Nginx) 

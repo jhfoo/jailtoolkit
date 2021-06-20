@@ -1,19 +1,19 @@
 #!/usr/local/bin/python
 # core modules
 import os
-import sys
-import shutil
 import json
-import getpass
+import traceback
 # public modules
 import requests
 import yaml
 # custom modules
 import lib.util as util
+import lib.clilib as cli
 import lib.jailminlib as jailminlib
 import lib.tasklib as tasklib
+import lib.constant as c
 
-print (os.path.abspath(__file__))
+print ('Script path: {}'.format(os.path.abspath(__file__)))
 
 def buildTemplate(opts):
   """Executes jail building"""
@@ -38,32 +38,20 @@ def buildTemplate(opts):
   util.execNWait('iocage create -r {} -n {}'.format(BuildConfig['release'], BuildConfig['name']))
   jailminlib.setProps(BuildConfig)
 
-  # start jail
-  print ('Starting {}...'.format(BuildConfig['name']))
-  util.execNWait('iocage start {}'.format(BuildConfig['name']))
+  installTemplate(opts)
+  # # start jail
+  # print ('Starting {}...'.format(BuildConfig['name']))
+  # util.execNWait('iocage start {}'.format(BuildConfig['name']))
 
-  # install pkgs
-  if 'pkgs' in BuildConfig:
-    jailminlib.installPkgs(BuildConfig['name'], BuildConfig['pkgs'])
+  # # install pkgs
+  # if 'pkgs' in BuildConfig:
+  #   jailminlib.installPkgs(BuildConfig['name'], BuildConfig['pkgs'])
 
-  # iterate through tasks
-  if 'tasks' in BuildConfig:
-    tasklib.doTasks(opts)
+  # # iterate through tasks
+  # if 'tasks' in BuildConfig:
+  #   tasklib.doTasks(opts)
 
   # util.execNWait('iocage set template=yes {}'.format(BuildConfig['name']))
-
-def readConfig(AltAppConfigFile):
-  """Read/ parse jailmin config"""
-  FILE_APPCONFIG = '/usr/local/etc/jailmin.yaml'
-
-  AppConfigFile = FILE_APPCONFIG if AltAppConfigFile is None else AltAppConfigFile
-  if os.path.exists(AppConfigFile):
-    InFile = open(AppConfigFile)
-    config = yaml.load(InFile.read(), Loader=yaml.FullLoader)
-    InFile.close()
-    return config
-  # else
-  raise Exception('Missing app config: {}'.format(AppConfigFile))
 
 def testGitGet(opts, fname):
   """Confirm code block necessary to GET raw GitHub private repo"""
@@ -79,85 +67,56 @@ def testGitGet(opts, fname):
   else:
     print (res.text)
 
-def parseOptions():
-  """Processes command-line arguments"""
-  print (len(sys.argv))
-  if len(sys.argv) < 2:
-    print ('Usage: jailmin [build] template [-v vars]')
-    sys.exit(0)
+def installTemplate(opts):
+  BuildConfig = opts['BuildConfig']
+  JailInfo = jailminlib.getJailByName(BuildConfig['name'])
+  if not JailInfo:
+    raise Exception ('Jail does not exist: {}'.format(BuildConfig['name']))
 
-  AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-  opts = {
-    'TemplatePath': '/usr/local/etc/jailmin/' if (AppBasePath.startswith('/usr/local/bin/')) else os.path.abspath('./'),
-    'DebugPath': '{}/'.format(os.path.abspath('./debug')),
-    'WorkingPath': '{}/'.format(os.path.abspath('./temp'))
-  }
-  # work on a copy of argv
-  args = sys.argv.copy()
-  args.pop(0)
+  print (json.dumps(JailInfo, sort_keys=True, indent=2))
+  if JailInfo[c.JAILINFO_STATE] != c.JAILSTATE_UP: 
+    # start jail
+    print ('Start jail: {}'.format(BuildConfig['name']))
+    util.execNWait('iocage start {}'.format(BuildConfig['name']))
 
-  while len(args) > 0:
-    param = args.pop(0)
-    if param == 'install':
-      print ('WARNING: You must be root or running-as root to install to /usr/local/bin')
-      shutil.copyfile(os.path.abspath(__file__), '/usr/local/bin/jailmin')
-      print ('jailmin installed')
-      continue
-    if param == 'setprop':
-      opts['cmd'] = param
-      opts['TemplateName'] = args.pop(0)
-      continue
-    if param == 'test':
-      opts['cmd'] = param
-      continue
-    if param == 'build':
-      opts['cmd'] = param
-      opts['TemplateName'] = args.pop(0)
-      continue
-    if param == '-i':
-      opts['Ip4Addr'] = args.pop(0)
-      continue
-    if param == '-c':
-      opts['AppFile'] = args.pop(0)
-      continue
-    if param == '-v':
-      opts['VarFile'] = args.pop(0)
-      continue
-    if param == '-d':
-      print (os.path.abspath(args.pop(0)))
-      # opts['DebugPath'] = args.pop(0)
-      continue
-    if param == '-n':
-      opts['JailName'] = args.pop(0)
-    else:
-      print ('ERROR: Unexpected param {}'.format(param))
-      sys.exit(2)
+  print ('Installing template: {}'.format(opts['TemplateName']))
 
-  opts['AppConfig'] = readConfig(opts['AppFile'] if 'AppFile' in opts else None)
+  # install pkgs
+  if 'pkgs' in BuildConfig:
+    jailminlib.installPkgs(BuildConfig['name'], BuildConfig['pkgs'])
 
-  if 'cmd' in opts and opts['cmd'] != 'test':
-    opts['vars'] = jailminlib.getVars(opts)
-    opts['BuildConfig'] = jailminlib.getMergedTemplate(opts)
-  return opts
+  # iterate through tasks
+  if 'tasks' in BuildConfig:
+    tasklib.doTasks(opts)
 
 def execOptions(opts):
   """Executes main command"""
   if opts['cmd'] == 'setprop':
     jailminlib.setProps(opts['TemplateName'])
     return
-  if opts['cmd'] == 'build':
+
+  if opts['cmd'] == c.CMD_BUILD:
+    template = opts['BuildConfig']
+    MandatoryKeys = [c.KEY_RELEASE]
+    for key in MandatoryKeys:
+      if key not in template:
+        raise Exception ('Missing key \'{}\' in template'.format(key))
+
     print ('Building {}...'.format(opts['TemplateName']))
     buildTemplate(opts)
     return
-  if opts['cmd'] == 'test':
-    testGitGet(opts,'test.yaml')
 
-def validateRoot():
-  """Confirms process has root privileges"""
-  if getpass.getuser() != 'root':
-    print ('INSUFFICIENT PRIVILEGES: jailmin requires root privileges to run some commmands (eg. iocage). Run jail as root or use sudo')
-    sys.exit(1)
+  if opts['cmd'] == c.CMD_INSTALL:
+    installTemplate(opts)
 
-validateRoot()
-ParsedOpts = parseOptions()
-execOptions(ParsedOpts)
+  if opts['cmd'] == c.CMD_TEST:
+    print (json.dumps(opts, sort_keys=True, indent=2))
+    # testGitGet(opts,'test.yaml')
+
+try:
+  cli.validateRoot()
+  ParsedOpts = cli.parseOptions()
+  execOptions(ParsedOpts)
+except Exception as e:
+  print(traceback.format_exc())
+  # print (e)
