@@ -1,0 +1,13 @@
+name: {{jailname}}
+release: {{jailrelease}}
+tasks:
+  - name: install nginx
+    do: runtemplate
+    template: nginx
+  - name: copy core.json template
+    do: copy
+    ApplyVars: true
+    src: {{TEMPLATEROOT}}nginx.conf
+    dest: {{JAILROOT}}usr/local/etc/nginx/nginx.conf
+  - name: restart jail
+    do: jailrestart

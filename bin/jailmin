@@ -73,7 +73,6 @@ def installTemplate(opts):
   if not JailInfo:
     raise Exception ('Jail does not exist: {}'.format(BuildConfig['name']))
 
-  print (json.dumps(JailInfo, sort_keys=True, indent=2))
   if JailInfo[c.JAILINFO_STATE] != c.JAILSTATE_UP: 
     # start jail
     print ('Start jail: {}'.format(BuildConfig['name']))

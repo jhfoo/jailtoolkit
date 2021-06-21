@@ -5,7 +5,7 @@ import json
 # public modules
 # custom modules
 import lib.util as util
-import lib.constant as constant
+import lib.constant as c
 
 AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 
@@ -28,7 +28,7 @@ def getTemplates(isTemplate = True):
         fields = {
           'jid': columns[1].strip(),
           'name': columns[2].strip(),
-          constant.JAILINFO_STATE: columns[3].strip(),
+          c.JAILINFO_STATE: columns[3].strip(),
           'release': columns[4].strip(),
           'address': columns[5].strip(),
         }
@@ -133,20 +133,23 @@ def getMergedTemplate(opts):
   for key in DefaultVars:
     TemplateVars[key] = DefaultVars[key]
 
-  if 'tasks' in template:
-    for task in template['tasks']:
+  if c.KEY_TASKS in template:
+    print ('Iterating tasks for variable replacement')
+    for task in template[c.KEY_TASKS]:
       for key in task:
         if type(task[key]) is str:
-          for VarName in re.findall(r'$$[A-Za-z]+$$', task[key]):
+          # print ('Checking key: {}, {}'.format(key, task[key]))
+          for VarName in re.findall(r'\$\$[A-Za-z]+\$\$', task[key]):
             KeyInTask = VarName[2:-2]
             if KeyInTask in DefaultVars:
+              print ('Replacing {}: {}'.format(VarName, DefaultVars[KeyInTask]))
               task[key] = task[key].replace(VarName, DefaultVars[KeyInTask])
             else:
               raise Exception('Missing variable {}'.format(KeyInTask))
 
   # light template validation
   if ('ValidateTemplate' not in opts or opts['ValidateTemplate'] == True):
-    MandatoryKeys = [constant.KEY_NAME]
+    MandatoryKeys = [c.KEY_NAME]
     for key in MandatoryKeys:
       if key not in template:
         raise Exception ('Missing key \'{}\' in template'.format(key))

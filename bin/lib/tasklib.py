@@ -94,15 +94,15 @@ def doTasks(opts):
 
   for task in BuildConfig['tasks']:
     print ('TASK: {}'.format(task[c.KEY_NAME]))
-    if (task['do'] == 'jailexec'):
+    if (task['do'] == c.TASK_JAILEXEC):
       util.execNWait('iocage exec {} "{}"'.format(BuildConfig['name'], task['cmd']))
       continue
-    if (task['do'] == 'jailrestart'):
+    if (task['do'] == c.TASK_JAILRESTART):
       util.execNWait('iocage restart {}'.format(BuildConfig['name']))
       continue
-    if (task['do'] == 'copy'):
+    if (task['do'] == c.TASK_COPY):
       taskCopy(opts, task, opts['WorkingPath'])
       continue
-    if (task['do'] == 'runtemplate'):
+    if (task['do'] == c.TASK_RUNTEMPLATE):
       taskRunTemplate(opts, task)
       continue
