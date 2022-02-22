@@ -4,6 +4,7 @@ import sys
 import re
 import copy
 import json
+import logging
 # custom modules
 import lib.util as util
 import lib.jailminlib as jailminlib
@@ -21,6 +22,8 @@ def stringify4Template(value):
   raise Exception('Unhandled value type: {}'.format(type(value)))
 
 def taskCopy(opts, task, WorkingPath):
+  logger = logging.getLogger('default')
+
   if ('ApplyVars' in task and task['ApplyVars'] == True):
     # apply vars to text file
     print (task['src'])
@@ -34,7 +37,7 @@ def taskCopy(opts, task, WorkingPath):
     vars = opts['vars']['vars']
     # replace vars in copy template
     for key in vars.keys():
-      print ('Replacing key {}'.format(key))
+      logger.info ('Replacing key {}'.format(key))
       RawData = RawData.replace('{{' + key + '}}', stringify4Template(vars[key]))
 
     # validate no unreplaced vars
@@ -42,12 +45,12 @@ def taskCopy(opts, task, WorkingPath):
     for key in re.findall('{{[A-Za-z]+}}', RawData):
       VarName = key[2:-2]
       isMissingVars = True
-      print ('ERROR: Variable {} not replaced'.format(VarName))
+      logger.error ('ERROR: Variable {} not replaced'.format(VarName))
     if isMissingVars:
       sys.exit(1)
 
     TempFile = WorkingPath + os.path.basename(task['dest'])
-    print ('dest basename: {}'.format(os.path.basename(task['dest'])))
+    logger.info ('dest basename: {}'.format(os.path.basename(task['dest'])))
     OutFile = open(TempFile,'w')
     OutFile.write(RawData)
     OutFile.close()
@@ -89,11 +92,13 @@ def taskRunTemplate(opts, task):
     doTasks(TaskOpts)
 
 def doTasks(opts):
+  logger = logging.getLogger('default')
+
   BuildConfig = opts['BuildConfig']
   vars = opts['vars']
 
   for task in BuildConfig['tasks']:
-    print ('TASK: {}'.format(task[c.KEY_NAME]))
+    logger.info ('TASK: {}'.format(task[c.KEY_NAME]))
     if (task['do'] == c.TASK_JAILEXEC):
       util.execNWait('iocage exec {} "{}"'.format(BuildConfig['name'], task['cmd']))
       continue

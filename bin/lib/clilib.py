@@ -2,6 +2,7 @@
 import os
 import sys
 import shutil
+import logging
 # public modules
 import getpass
 import yaml
@@ -44,6 +45,21 @@ def parseOptions():
     'DebugPath': '{}/'.format(os.path.abspath('./debug')),
     'WorkingPath': '{}/'.format(os.path.abspath('./temp'))
   }
+
+  # set debug logger
+  ConsoleOut = logging.StreamHandler()
+  ConsoleOut.setLevel(logging.INFO)
+  ConsoleOut.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
+
+  OutFile = logging.FileHandler('{}/jailmin.log'.format(opts['DebugPath']))
+  OutFile.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
+  DefaultLogger = logging.getLogger('default')
+  DefaultLogger.setLevel(logging.DEBUG)
+  DefaultLogger.addHandler(OutFile)
+  DefaultLogger.addHandler(ConsoleOut)
+  DefaultLogger.debug('parseOptions: DebugPath set')
+  
   # work on a copy of argv
   args = sys.argv.copy()
   args.pop(0)

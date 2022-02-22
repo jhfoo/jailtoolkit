@@ -2,6 +2,7 @@
 import os
 import re
 import json
+import logging
 # public modules
 # custom modules
 import lib.util as util
@@ -59,30 +60,33 @@ def getJailProps(JailName):
 
 def smartGetFile(AppConfig, DynParam, PathFormat, LocalPrefix):
   """Either get file locally or from GitHub"""
+  logger = logging.getLogger('default')
   if DynParam.startswith('github'):
     FinalPath = PathFormat.format(DynParam[7:])
-    print ('smartGetFile: GITHUB {}'.format(FinalPath))
+    logger.info ('smartGetFile: GITHUB {}'.format(FinalPath))
     return util.getFromGit(AppConfig, FinalPath)
 
   # else
   FinalPath = LocalPrefix + PathFormat.format(DynParam)
-  print ('smartGetFile: LOCAL {}'.format(FinalPath))
+  logger.info ('smartGetFile: LOCAL {}'.format(FinalPath))
   return util.readTextFile(FinalPath)
 
 def getVars(opts):
   """Merge default and user-defined variable files into a single dictionary"""
+  logger = logging.getLogger('default')
+
   # load default vars
   DefaultVars = {}
   if 'DefaultVars' not in opts['AppConfig']:
     # default handler when DefaultVars not specified
-    VarFile = opts['TemplatePath'] + '/jails/default/vars.yaml'
-    print ('DEBUG: Loading default varfile {}'.format(VarFile))
+    VarFile = opts['TemplatePath'] + '/templates/default/vars.yaml'
+    logger.info ('getVars(): Loading default varfile {}'.format(VarFile))
     DefaultVars = util.readYamlFile(VarFile)
   else:
     DefaultVars = util.parseYaml(smartGetFile(
       AppConfig = opts['AppConfig'], 
       DynParam = opts['AppConfig']['DefaultVars'], 
-      PathFormat = '/jails/default/vars.yaml', 
+      PathFormat = '/templates/default/vars.yaml', 
       LocalPrefix = opts['TemplatePath']
     ))
 
@@ -102,6 +106,8 @@ def getVars(opts):
 
 def getMergedTemplate(opts):
   """Load jailmin template and apply variables"""
+  logger = logging.getLogger('default')
+
   VarDict = opts['vars']
   TemplateVars = VarDict['vars'] if ('vars' in VarDict.keys()) else {}
   TextFile = smartGetFile(opts['AppConfig'], opts['TemplateName'], '/templates/{}/template.yaml', opts['TemplatePath'])
@@ -142,7 +148,7 @@ def getMergedTemplate(opts):
           for VarName in re.findall(r'\$\$[A-Za-z]+\$\$', task[key]):
             KeyInTask = VarName[2:-2]
             if KeyInTask in DefaultVars:
-              print ('Replacing {}: {}'.format(VarName, DefaultVars[KeyInTask]))
+              logger.info ('Replacing {}: {}'.format(VarName, DefaultVars[KeyInTask]))
               task[key] = task[key].replace(VarName, DefaultVars[KeyInTask])
             else:
               raise Exception('Missing variable {}'.format(KeyInTask))
@@ -157,15 +163,17 @@ def getMergedTemplate(opts):
   return template
 
 def setProps(BuildConfig):
+  logger = logging.getLogger('default')
+
   props = getJailProps(BuildConfig['name'])
 
   # stop jail if running
   if (props is not None and props['state'] == 'up'):
-    print ('{} is running: stopping'.format(BuildConfig['name']))
+    logger.info ('{} is running: stopping'.format(BuildConfig['name']))
     util.execNWait('iocage stop {}'.format(BuildConfig['name']))
 
   for key in BuildConfig['props'].keys():
-    print ('{} = {}'.format(key, getPropValue(BuildConfig['props'][key])))
+    logger.info ('{} = {}'.format(key, getPropValue(BuildConfig['props'][key])))
     util.execNWait('iocage set {}={} {}'.format(key, getPropValue(BuildConfig['props'][key]), BuildConfig['name']), isContinueOnError=True)
 
 def getJailByName(JailName):
@@ -188,8 +196,10 @@ def destroyIfExist(TemplateName):
   return False
 
 def installPkgs(JailName, PkgList):
+  logger = logging.getLogger('default')
+
   PkgStr = ' '.join(PkgList)
-  print ('Installing pkgs: {}'.format(PkgStr))
+  logger.info ('Installing pkgs: {}'.format(PkgStr))
   util.execNWait('iocage exec {} "{}"'.format(JailName, 'pkg install -y {}'.format(PkgStr)))
 
 def stringify4Template(value):

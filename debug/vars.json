@@ -1,9 +1,9 @@
 {
   "vars": {
     "jailrelease": "13.0-RELEASE",
-    "JAILROOT": "/zroot/iocage/jails/test2/root/",
+    "JAILROOT": "/zroot/iocage/jails/test/root/",
     "TEMPLATEROOT": "/usr/home/jhfoo/jailtoolkit/templates/std/",
-    "JAILNAME": "test2"
+    "JAILNAME": "test"
   },
   "props": {
     "allow_raw_sockets": true

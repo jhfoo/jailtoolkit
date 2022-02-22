@@ -2,6 +2,7 @@
 import re
 import subprocess
 import json
+import logging
 # public modules
 import requests
 import yaml
@@ -26,11 +27,18 @@ def execNWaitShell(cmd):
   """Executes command in shell and waits for completion"""
   child = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
   out = child.communicate()[0].decode('utf-8').strip()
-  print (out)
+
+  # log to file
+  logger = logging.getLogger('default')
+  logger.debug(out)
+
   return child.poll()
 
-def execNWait(cmd, isTest4Shell=True, isContinueOnError=False, isPrintRealtime=True, isForceShellExec=False):
+def execNWait(cmd, isTest4Shell=True, isContinueOnError=False, isPrintRealtime=True, isForceShellExec=False, DebugPath='./debug/'):
   """Executes command and waits for completion"""
+  logger = logging.getLogger('default')
+  logger.debug('CMD: {}'.format(cmd))
+
   if isTest4Shell:
     if isForceShellExec or cmd.find('|') > -1 or cmd.find('>') > -1 or cmd.find('"') > -1:
       # exec in shell mode
@@ -46,7 +54,10 @@ def execNWait(cmd, isTest4Shell=True, isContinueOnError=False, isPrintRealtime=T
       err = child.stderr.read().decode('utf-8')
       # always print error messages
       if err != '':
-        print (err)
+        logger = logging.getLogger('default')
+        logger.error(err)
+
+        print ('ERROR: See exec.error.log for details')
       if line == '':
         # child has terminated: exit fn
         code = child.poll()
@@ -63,6 +74,10 @@ def execNWait(cmd, isTest4Shell=True, isContinueOnError=False, isPrintRealtime=T
             'ExitCode': code
           }
       else:
+        # log to file
+        logger = logging.getLogger('default')
+        logger.debug(line)
+
         response += line
         if isPrintRealtime:
           print (line)
@@ -71,6 +86,10 @@ def execNWait(cmd, isTest4Shell=True, isContinueOnError=False, isPrintRealtime=T
     print ('*** Terminating process')
     child.kill()
     out, err = child.communicate()
+    logger = logging.getLogger('default')
+    logger.debug(out.decode('utf-8'))
+    logger.error(err.decode('utf-8'))
+
     print (out.decode('utf-8'))
     print (err.decode('utf-8'))
 
