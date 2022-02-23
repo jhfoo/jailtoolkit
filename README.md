@@ -1,34 +1,47 @@
-# jailtoolkit (WIP)
-Toolkit to manage jail deployment with applications
+# jailmin (ALPHA)
+Opinionated toolkit extending iocage to manage jail deployment.
 
 ## Goal
-A set of scripts and configuration to help FreeBSD administrators automate application deployment in jails with 'sidecar' apps like Consul to manage them collectively.
+Combine basic jail management with modern jail management leveraging freely available utilities eg. iocage, Consul.
 
 ## Implementation
-Heavy dependency on iocage and Python.
+1. Priority towards jail management in a vnet network.
+2. Support generic and extendable service configuration via 'templates'.
+
+## Status
+### Works
+1. Package installer (installpkgs)
+2. Spinning up templated jails works though environment config is not well documented.
+
+### In progress
+2. Network installer (installnet) based on config in /usr/local/etc/jailmin.yaml
 
 ## Requirements (tested)
-- [FreeBSD 12.2 (RELEASE)](https://www.freebsd.org/where.html)
-- [Python 3.7](https://docs.python.org/3.7/)
-- [Iocage 1.2](https://github.com/iocage/iocage)
-- [Consul 1.9.1](https://www.consul.io/)
-
-## Usage
-To be used on a non-root account with sudo capabilities (wheel group?)
+- Softwares
+  - [FreeBSD 13.0 (RELEASE)](https://www.freebsd.org/where.html)
+  - [Python 3.8](https://docs.python.org/3.8/)
+  - [Iocage 1.2](https://github.com/iocage/iocage)
+  - [Consul 1.9](https://www.consul.io/)
+- Permissions
+  - Root or sudo-able account
 
 ## Assumptions
 - Zsh default shell on account
-- User has root or sudo access
 
 ## Install
+### Install dependency packages
 ~~~sh
 git clone https://github.com/jhfoo/jailtoolkit.git
-cd jailtoolkit/bin
-./install.sh
-# install dependencies
-# assumes Python 3.7 installed
-sudo pkg install -y py37-yaml
+cd jailtoolkit
+sudo ./bin/jailmin installpkgs
 ~~~
+NOTE: Includes iocage
+
+### Configure network
+~~~sh
+sudo ./bin/jailmin installnet
+~~~
+NOTE: Updates /etc/rc.conf
 
 ## Examples
 Create a simple jail with static ip
