@@ -4,17 +4,10 @@ import sys
 import shutil
 import logging
 # public modules
-import getpass
 import yaml
 # custom modules
 import lib.constant as c
 import lib.jailminlib as jailminlib
-
-def validateRoot():
-  """Confirms process has root privileges"""
-  if getpass.getuser() != 'root':
-    print ('INSUFFICIENT PRIVILEGES: jailmin requires root privileges to run some commmands (eg. iocage). Run jail as root or use sudo')
-    sys.exit(1)
 
 def readConfig(AltAppConfigFile):
   """Read/ parse jailmin config"""

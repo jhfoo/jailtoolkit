@@ -25,6 +25,6 @@ def quickParseOptions():
 
 def installPkgs():
   """Install Python packages"""
-  pkgs = ['py38-yaml']
+  pkgs = ['py38-iocage', 'py38-yaml']
   for pkg in pkgs:
     util.execNWait('pkg install -y {}'.format(pkg), isPrintRealtime = False)
