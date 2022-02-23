@@ -31,14 +31,6 @@ def readConfig(AltAppConfigFile):
 
 def parseOptions():
   """Processes command-line arguments"""
-  if len(sys.argv) < 2:
-    print ('Usage: jailmin [{}|{}|{}] template [params]'.format(c.CMD_TEST, c.CMD_INSTALL, c.CMD_BUILD, c.CMDPARAM_JAILNAME))
-    print ("""Params: 
-  {}\tip address
-  {}\tvarfile
-  {}\tjailname""".format(c.CMDPARAM_IPADDR, c.CMDPARAM_VARFILE, c.CMDPARAM_JAILNAME))
-    sys.exit(0)
-
   AppBasePath = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
   opts = {
     'TemplatePath': '/usr/local/etc/jailmin/' if (AppBasePath.startswith('/usr/local/bin/')) else os.path.abspath('./'),

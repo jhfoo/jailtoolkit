@@ -1,0 +1,14 @@
+#!/usr/local/bin/python3.8
+
+# core mods
+import sys
+# custom mods
+import lib.init as init
+import lib.constant as c
+
+init.validateRoot()
+init.quickParseOptions()
+
+# at this point there is at least 1 argument in the call
+if sys.argv[1] == c.CMD_INSTALLPKGS:
+  init.installPkgs() 
