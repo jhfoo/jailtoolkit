@@ -92,8 +92,11 @@ def installNet():
     RawBridges.append(JailminConfig['bridges'][bridge]['bridge'])
   setRcConfig(RcConfig, 'cloned_interfaces', ' '.join(RawBridges))
 
-  # set ifconfig_bridge_name string
   for bridge in bridges:
+    # set ifconfig_bridge_name string
     if bridge != JailminConfig['bridges'][bridge]['bridge']:
       setRcConfig(RcConfig, 'ifconfig_{}_name'.format(JailminConfig['bridges'][bridge]['bridge']), bridge)
+    # set ifconfig_bridge string
+    if 'ip' in JailminConfig['bridges'][bridge].keys():
+      setRcConfig(RcConfig, 'ifconfig_{}'.format(bridge, '-inet {}'.format(JailminConfig['bridges'][bridge]['ip']))
 
