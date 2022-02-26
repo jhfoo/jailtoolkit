@@ -66,6 +66,16 @@ def setRcConfig(config, key, value):
   print ('sysrc {}="{}"'.format(key, value))
   util.execNWait('sysrc {}="{}"'.format(key, value))
 
+def getBridges(config):
+  if 'bridges' in config.keys():
+    ret = []
+    for key in config['bridges'].keys():
+      if (key != 'default'):
+        ret.append(key) 
+    return ret
+  # else
+  return []
+
 def installNet():
   """Configure jail network settings"""
   logger.info('installNet():')
@@ -74,3 +84,16 @@ def installNet():
   print (RcConfig)
   print (JailminConfig)
   setRcConfig(RcConfig, 'gateway_enable', 'YES')
+
+  bridges = getBridges(JailminConfig)
+  # set cloned_interfaces string
+  RawBridges = []
+  for bridge in bridges:
+    RawBridges.append(JailminConfig['bridges'][bridge]['bridge'])
+  setRcConfig(RcConfig, 'cloned_interfaces', ' '.join(RawBridges))
+
+  # set ifconfig_bridge_name string
+  for bridge in bridges:
+    if bridge != JailminConfig['bridges'][bridge]['bridge']:
+      setRcConfig(RcConfig, 'ifconfig_{}_name'.format(JailminConfig['bridges'][bridge]['bridge']), bridge)
+
