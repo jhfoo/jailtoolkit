@@ -3,14 +3,18 @@
 # core mods
 import sys
 # custom mods
+import lib.logger as logger
 import lib.init as init
 import lib.constant as c
 
+logger.onlyConsole()
 init.validateRoot()
 init.quickParseOptions()
 
 # at this point there is at least 1 argument in the call
 if sys.argv[1] == c.CMD_INSTALLPKGS:
   init.installPkgs() 
+elif sys.argv[1] == c.CMD_INSTALLNET:
+  init.installNet()
 else:
   import jailminold

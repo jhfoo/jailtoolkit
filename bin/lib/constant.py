@@ -5,7 +5,7 @@ KEY_TASKS = 'tasks'
 CMD_INSTALL = 'install'
 CMD_TEST = 'test'
 CMD_BUILD = 'build'
-CMD_INITNET = 'initnet'
+CMD_INSTALLNET = 'installnet'
 CMD_INSTALLPKGS = 'installpkgs'
 
 CMDPARAM_JAILNAME = '-n'
