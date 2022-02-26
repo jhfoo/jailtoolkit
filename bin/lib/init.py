@@ -98,5 +98,5 @@ def installNet():
       setRcConfig(RcConfig, 'ifconfig_{}_name'.format(JailminConfig['bridges'][bridge]['bridge']), bridge)
     # set ifconfig_bridge string
     if 'ip' in JailminConfig['bridges'][bridge].keys():
-      setRcConfig(RcConfig, 'ifconfig_{}'.format(bridge, '-inet {}'.format(JailminConfig['bridges'][bridge]['ip']))
+      setRcConfig(RcConfig, 'ifconfig_{}'.format(bridge), 'inet {}'.format(JailminConfig['bridges'][bridge]['ip']))
 
