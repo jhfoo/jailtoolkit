@@ -84,6 +84,7 @@ def installNet():
   print (RcConfig)
   print (JailminConfig)
   setRcConfig(RcConfig, 'gateway_enable', 'YES')
+  setRcConfig(RcConfig, 'pf_enable', 'YES')
 
   bridges = getBridges(JailminConfig)
   # set cloned_interfaces string

@@ -35,13 +35,17 @@ git clone https://github.com/jhfoo/jailtoolkit.git
 cd jailtoolkit
 sudo ./bin/jailmin installpkgs
 ~~~
-NOTE: Includes iocage
+NOTE
+1. Includes iocage
 
 ### Configure network
+1. Sets up network used in jails.
+2. Follows config in ```/usr/localetc/jailmin.yaml```.
 ~~~sh
 sudo ./bin/jailmin installnet
 ~~~
-NOTE: Updates /etc/rc.conf
+NOTE
+1. Updates /etc/rc.conf
 
 ## Examples
 Create a simple jail with static ip
@@ -89,3 +93,10 @@ Create a simple jail with static ip from config in GitHub
 - -i: ip4 address
 - -n: jail name
 - -c: app config file
+
+## Notes
+### Configuring bridges
+1. If you're using vtnet, remember to enable promiscuous mode (promisc, [bug](https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=254343)) or it cannot be added to the bridge:
+```
+ifconfig_vtnet0="inet 192.168.0.20/24 promisc"
+```

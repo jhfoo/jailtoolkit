@@ -1,9 +1,9 @@
 {
   "vars": {
     "jailrelease": "13.0-RELEASE",
-    "JAILROOT": "/zroot/iocage/jails/test/root/",
-    "TEMPLATEROOT": "/usr/home/jhfoo/jailtoolkit/templates/std/",
-    "JAILNAME": "test"
+    "JAILROOT": "/zroot/iocage/jails/fakedhcp/root/",
+    "TEMPLATEROOT": "/usr/home/jhfoo/jailtoolkit/templates/deadend/",
+    "JAILNAME": "fakedhcp"
   },
   "props": {
     "allow_raw_sockets": true

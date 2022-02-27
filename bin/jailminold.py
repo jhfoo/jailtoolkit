@@ -14,8 +14,6 @@ import lib.jailminlib as jailminlib
 import lib.tasklib as tasklib
 import lib.constant as c
 
-print ('Script path: {}'.format(os.path.abspath(__file__)))
-
 def buildTemplate(opts):
   """Executes jail building"""
   BuildConfig = opts['BuildConfig']

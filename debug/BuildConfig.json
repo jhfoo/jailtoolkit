@@ -1,9 +1,17 @@
 {
-  "name": "test",
+  "name": "fakedhcp",
   "release": "13.0-RELEASE",
+  "vars": {
+    "dnsmasq_port": 53,
+    "dnsmasq_domain": "deadend.kungfoo.info",
+    "dnsmasq_dhcprange": "192.168.10.10,192.168.10.50",
+    "dnsmasq_defaultroute": "192.168.10.1",
+    "dnsmasq_dns": "192.168.88.5"
+  },
   "props": {
+    "ip4_addr": "vnet0|192.168.10.2/24",
     "vnet": true,
-    "dhcp": true,
+    "dhcp": false,
     "bpf": true,
     "template": false,
     "vnet_default_interface": "jailvlan",
@@ -14,9 +22,9 @@
   ],
   "tasks": [
     {
-      "name": "install consul",
+      "name": "install dnsmasq",
       "do": "runtemplate",
-      "template": "github:consul"
+      "template": "local:dnsmasq"
     },
     {
       "name": "restart jail",
