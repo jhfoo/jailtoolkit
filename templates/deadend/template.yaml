@@ -19,6 +19,6 @@ pkgs:
 tasks:
   - name: install dnsmasq
     do: runtemplate
-    template: local:dnsmasq
+    template: dnsmasq
   - name: restart jail
     do: jailrestart
