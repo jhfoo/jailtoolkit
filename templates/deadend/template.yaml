@@ -1,4 +1,4 @@
-name: {{jailname}}
+name: dhcp-deadend
 release: {{jailrelease}}
 vars:
   dnsmasq_port: 53
@@ -12,6 +12,7 @@ props:
   dhcp: false
   bpf: true
   template: false
+  defaultrouter: 192.168.82.1
   vnet_default_interface: jailprivate
 pkgs:
   - git
