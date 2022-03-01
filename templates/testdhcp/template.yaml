@@ -1,4 +1,5 @@
 name: {{jailname}}
+release: {{jailrelease}}
 props:
   vnet: true
   dhcp: true
