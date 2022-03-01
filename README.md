@@ -22,8 +22,6 @@ Combine basic jail management with modern jail management leveraging freely avai
 ### In progress
 2. Network installer (installnet) based on config in /usr/local/etc/jailmin.yaml
 
-
-
 ## Install
 ### Install dependency packages
 ~~~sh
@@ -32,7 +30,7 @@ cd jailtoolkit
 sudo ./bin/jailmin installpkgs
 ~~~
 NOTE
-1. Includes iocage
+1. Includes FreeBSD packages (iocage) and python libraries.
 
 ### Configure network
 1. Sets up network used in jails.
@@ -43,12 +41,14 @@ sudo ./bin/jailmin installnet
 NOTE
 1. Updates /etc/rc.conf
 
-
-
 ## Command-line commands and options
-- build
-- -v: variable folder
-- -i: ip4 address
-- -n: jail name
-- -c: app config file
-
+~~~
+build       Builds the jail
+test        Displays build configuration
+installpkgs installs required packages
+installnet  installs opinionated network settings
+-v          variable folder
+-i          ip4 address
+-n          jail name
+-c          app config file
+~~~
