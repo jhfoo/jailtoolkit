@@ -1,4 +1,4 @@
-[Home](README.MD)
+[Home](README.md)
 # Examples
 Create a simple jail with static ip
 ~~~ sh
