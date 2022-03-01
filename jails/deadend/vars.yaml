@@ -1,0 +1,9 @@
+vars:
+  dnsmasq_port: 53
+  dnsmasq_domain: deadend.kungfoo.info
+  dnsmasq_dhcprange: 192.168.82.10,192.168.82.200
+  dnsmasq_defaultroute: 192.168.82.1
+  dnsmasq_dns: 192.168.88.5
+props:
+  ip4_addr: vnet0|192.168.82.2/24
+  defaultrouter: 192.168.82.1
