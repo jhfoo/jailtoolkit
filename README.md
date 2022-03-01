@@ -4,6 +4,7 @@ Opinionated toolkit extending iocage to manage jail deployment.
 ## Pages
 1. [Concepts](Concepts.md)
 2. [Requirements & Assumptions](Assumptions.md)
+3. [Examples](Examples.md)
 
 ## Goal
 Combine basic jail management with modern jail management leveraging freely available utilities eg. iocage, Consul.
