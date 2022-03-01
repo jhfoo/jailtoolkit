@@ -36,7 +36,7 @@ def parseOptions():
   # create paths
   AutocreatePaths = ['WorkingPath', 'TemplatePath', 'DebugPath']
   for path in AutocreatePaths:
-    if !os.path.exists(opts[path]):
+    if not os.path.exists(opts[path]):
       os.makedirs(opts[path])
 
   # set debug logger
