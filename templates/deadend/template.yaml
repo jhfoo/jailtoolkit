@@ -1,11 +1,9 @@
-name: dhcp-deadend
 release: {{jailrelease}}
 props:
   vnet: true
   dhcp: false
   bpf: true
   template: false
-  interfaces: vnet0:jailprivate
 pkgs:
   - git
 tasks:

@@ -1,4 +1,5 @@
 vars:
+  jailname: dhcp-deadend
   dnsmasq_port: 53
   dnsmasq_domain: deadend.kungfoo.info
   dnsmasq_dhcprange: 192.168.82.10,192.168.82.200

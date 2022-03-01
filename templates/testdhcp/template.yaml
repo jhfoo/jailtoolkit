@@ -1,11 +1,9 @@
 name: {{jailname}}
-release: 12.2-RELEASE
 props:
   vnet: true
   dhcp: true
   bpf: true
   template: false
-  vnet_default_interface: jailvlan
 tasks:
   - name: install consul
     do: runtemplate

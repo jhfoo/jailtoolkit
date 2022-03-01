@@ -1,2 +1,4 @@
 debug/
-bin/__pycache__/
+bin/__pycache__/*
+temp/*
+debug/*

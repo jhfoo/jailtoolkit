@@ -2,3 +2,4 @@ vars:
   jailrelease: 13.0-RELEASE
 props:
   allow_raw_sockets: true
+  interfaces: vnet0:jailprivate
