@@ -1,6 +1,8 @@
 # jailmin (ALPHA)
 Opinionated toolkit extending iocage to manage jail deployment.
 
+## Pages
+1. [Concepts](Concepts.md)
 ## Goal
 Combine basic jail management with modern jail management leveraging freely available utilities eg. iocage, Consul.
 
@@ -72,20 +74,6 @@ Create a simple jail with static ip from config in GitHub
 ./bin/jailmin build github:basic -n hellojail -i 192.168.0.58/24
 ~~~
 
-## Templates
-1. Templates are YAML files describing how a jail is to be set up
-2. Templates can be nested (eg. load sidecars such as Consul or install services such Nginx) 
-
-## Variables
-1. Variables are custom configurable specific to the user's setup (eg. jail properties), to be applied on templates.
-
-## Tasks
-1. Tasks describe actions necessary to set up a service (eg. Consul).
-2. Valids commands
- - jailrestart: restart jail
- - jailexec: run a command as root in jail
- - copy: supports templates and variables
- - runtemplate
 
 ## Command-line commands and options
 - build
@@ -94,9 +82,3 @@ Create a simple jail with static ip from config in GitHub
 - -n: jail name
 - -c: app config file
 
-## Notes
-### Configuring bridges
-1. If you're using vtnet, remember to enable promiscuous mode (promisc, [bug](https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=254343)) or it cannot be added to the bridge:
-```
-ifconfig_vtnet0="inet 192.168.0.20/24 promisc"
-```
