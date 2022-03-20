@@ -4,7 +4,8 @@ Opinionated toolkit extending iocage to manage jail deployment.
 ## Pages
 1. [Concepts](Concepts.md)
 2. [Requirements & Assumptions](Assumptions.md)
-3. [Examples](Examples.md)
+3. [Default network](Network.md)
+4. [Examples](Examples.md)
 
 ## Goal
 Combine basic jail management with modern jail management leveraging freely available utilities eg. iocage, Consul.
@@ -43,12 +44,12 @@ NOTE
 
 ## Command-line commands and options
 ~~~
-build       Builds the jail
-test        Displays build configuration
-installpkgs installs required packages
-installnet  installs opinionated network settings
--v          variable folder
--i          ip4 address
--n          jail name
--c          app config file
+build <template>   Builds the jail
+test <template>    Displays build configuration
+installpkgs        installs required packages
+installnet         installs opinionated network settings
+-v <folder>        variable folder
+-i <address>       ip4 address
+-n <name>          jail name
+-c                 app config file
 ~~~

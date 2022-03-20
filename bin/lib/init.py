@@ -51,6 +51,15 @@ def readRcConf():
 
   return ret
 
+def getInterfaces():
+  ret = []
+  for line in util.execNWait('ifconfig', isPrintRealtime=False)['output'].splitlines():
+    matches = re.match('^(\S+?):', line)
+    if matches != None:
+      ret.append(matches.group(1))
+      # print ('{}'.format(matches.group(1)))    
+  return ret
+
 def readJailminYaml():
   InFile = open('/usr/local/etc/jailmin.yaml', 'r')
   doc = yaml.load(InFile.read(), Loader=yaml.FullLoader)
@@ -76,13 +85,34 @@ def getBridges(config):
   # else
   return []
 
+def testNet():
+  """Validates network set up as configured"""
+  logger.info('testNet():')
+  RcConfig = readRcConf()
+  JailminConfig = readJailminYaml()
+  # print (RcConfig)
+  # print (JailminConfig)
+  interfaces = getInterfaces()
+  bridges = getBridges(JailminConfig)
+  for bridge in bridges:
+    # BridgeRec = JailminConfig['bridges'][bridge]
+    isTestPassed = True
+    if not 'ifconfig_{}'.format(bridge) in RcConfig:
+      print ('[WARNING] bridge {} not configured in rc.conf'.format(bridge))
+      isTestPassed = False
+    if not bridge in interfaces:
+      print ('[WARNING] invalid interface {} in ifconfig: install may not work'.format(bridge))
+      isTestPassed = False
+    if isTestPassed:
+      print ('Bridge {} looks good'.format(bridge))
+
 def installNet():
   """Configure jail network settings"""
   logger.info('installNet():')
   RcConfig = readRcConf()
   JailminConfig = readJailminYaml()
-  print (RcConfig)
-  print (JailminConfig)
+  # print (RcConfig)
+  # print (JailminConfig)
   setRcConfig(RcConfig, 'gateway_enable', 'YES')
   setRcConfig(RcConfig, 'pf_enable', 'YES')
 
@@ -94,15 +124,18 @@ def installNet():
   setRcConfig(RcConfig, 'cloned_interfaces', ' '.join(RawBridges))
 
   for bridge in bridges:
+    BridgeRec = JailminConfig['bridges'][bridge]
+    RawBridgeName = BridgeRec['bridge']
     # set ifconfig_bridge_name string
-    if bridge != JailminConfig['bridges'][bridge]['bridge']:
-      setRcConfig(RcConfig, 'ifconfig_{}_name'.format(JailminConfig['bridges'][bridge]['bridge']), bridge)
+    # bridge is aliased
+    if bridge != RawBridgeName:
+      setRcConfig(RcConfig, 'ifconfig_{}_name'.format(RawBridgeName), bridge)
 
     # set ifconfig_bridge for ip
     if 'ip' in JailminConfig['bridges'][bridge].keys():
-      setRcConfig(RcConfig, 'ifconfig_{}'.format(bridge), 'inet {}'.format(JailminConfig['bridges'][bridge]['ip']))
+      setRcConfig(RcConfig, 'ifconfig_{}'.format(bridge), 'inet {}'.format(BridgeRec['ip']))
 
     # set ifconfig_bridge for addm
     if 'add' in JailminConfig['bridges'][bridge].keys():
-      setRcConfig(RcConfig, 'ifconfig_{}'.format(bridge), 'addm {}'.format(JailminConfig['bridges'][bridge]['add']))
+      setRcConfig(RcConfig, 'ifconfig_{}'.format(bridge), 'addm {}'.format(BridgeRec['add']))
 

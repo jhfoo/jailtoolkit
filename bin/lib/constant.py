@@ -6,6 +6,7 @@ CMD_INSTALL = 'install'
 CMD_TEST = 'test'
 CMD_BUILD = 'build'
 CMD_INSTALLNET = 'installnet'
+CMD_TESTNET = 'testnet'
 CMD_INSTALLPKGS = 'installpkgs'
 
 CMDPARAM_JAILNAME = '-n'

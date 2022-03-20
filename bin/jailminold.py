@@ -115,6 +115,7 @@ def execOptions(opts):
     # testGitGet(opts,'test.yaml')
 
 try:
+  print ('Script path: {}'.format(os.path.abspath(__file__)))
   ParsedOpts = cli.parseOptions()
   execOptions(ParsedOpts)
 except Exception as e:

@@ -1,30 +1,23 @@
 {
-  "name": "fakedhcp",
+  "name": "snmpexporter-golem",
   "release": "13.0-RELEASE",
-  "vars": {
-    "dnsmasq_port": 53,
-    "dnsmasq_domain": "deadend.kungfoo.info",
-    "dnsmasq_dhcprange": "192.168.10.10,192.168.10.50",
-    "dnsmasq_defaultroute": "192.168.10.1",
-    "dnsmasq_dns": "192.168.88.5"
-  },
   "props": {
-    "ip4_addr": "vnet0|192.168.10.2/24",
     "vnet": true,
-    "dhcp": false,
+    "dhcp": true,
     "bpf": true,
     "template": false,
     "vnet_default_interface": "jailvlan",
-    "allow_raw_sockets": true
+    "allow_raw_sockets": true,
+    "interfaces": "vnet0:jailprivate"
   },
   "pkgs": [
     "git"
   ],
   "tasks": [
     {
-      "name": "install dnsmasq",
+      "name": "install consul",
       "do": "runtemplate",
-      "template": "local:dnsmasq"
+      "template": "github:consul"
     },
     {
       "name": "restart jail",

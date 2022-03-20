@@ -1,11 +1,12 @@
 {
   "vars": {
     "jailrelease": "13.0-RELEASE",
-    "JAILROOT": "/zroot/iocage/jails/fakedhcp/root/",
-    "TEMPLATEROOT": "/usr/home/jhfoo/jailtoolkit/templates/deadend/",
-    "JAILNAME": "fakedhcp"
+    "JAILROOT": "/zroot/iocage/jails/snmpexporter-golem/root/",
+    "TEMPLATEROOT": "/usr/home/jhfoo/jailtoolkit/templates/std/",
+    "JAILNAME": "snmpexporter-golem"
   },
   "props": {
-    "allow_raw_sockets": true
+    "allow_raw_sockets": true,
+    "interfaces": "vnet0:jailprivate"
   }
 }

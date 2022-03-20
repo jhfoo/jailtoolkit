@@ -16,5 +16,7 @@ if sys.argv[1] == c.CMD_INSTALLPKGS:
   init.installPkgs() 
 elif sys.argv[1] == c.CMD_INSTALLNET:
   init.installNet()
+elif sys.argv[1] == c.CMD_TESTNET:
+  init.testNet()
 else:
   import jailminold
