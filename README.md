@@ -1,4 +1,6 @@
-# jailmin (ALPHA)
+# jailmin (DEPRECATED)
+THIS REPO HAS BEEN A COLLECTION OF EXPERIMENTAL CODE TO ADD ADDITIONAL CAPABILITIES TO IOCAGE. PLEASE REFER TO [JAILMIN](https://github.com/jhfoo/jailtoolkit) AS THE SUCCESSOR REPO.
+
 Opinionated toolkit extending iocage to manage jail deployment.
 
 ## Pages
